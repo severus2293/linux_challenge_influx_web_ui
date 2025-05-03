@@ -37,11 +37,11 @@ GO_BUILD_ARGS += -gcflags "$(GCFLAGS)"
 endif
 
 ifeq ($(OS), Windows_NT)
-	VERSION := $(shell git describe --exact-match --tags 2>nil)
+	VERSION := $(shell git describe --exact-match --tags 2>nul || echo "dev")
 else
-	VERSION := $(shell git describe --exact-match --tags 2>/dev/null)
+	VERSION := $(shell git describe --exact-match --tags 2>/dev/null || echo "dev")
 endif
-COMMIT := $(shell git rev-parse --short HEAD)
+COMMIT := $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 
 LDFLAGS := $(LDFLAGS) -X main.commit=$(COMMIT)
 ifdef VERSION
@@ -64,7 +64,6 @@ export GO_VET=env GO111MODULE=on go vet $(GO_TEST_ARGS)
 export GO_RUN=env GO111MODULE=on go run $(GO_BUILD_ARGS)
 export PATH := $(PWD)/bin/$(GOOS):$(PATH)
 
-
 # All go source files
 SOURCES := $(shell find . -name '*.go' -not -name '*_test.go') go.mod go.sum
 
@@ -85,8 +84,12 @@ bin/$(GOOS)/influxd: $(SOURCES)
 
 influxd: bin/$(GOOS)/influxd
 
-static/data/build: scripts/fetch-ui-assets.sh
-	./scripts/fetch-ui-assets.sh
+static/data/build:
+	@if [ -d "static/data/build" ]; then \
+		echo "UI assets already exist in static/data/build"; \
+	else \
+		./scripts/build-ui.sh; \
+	fi
 
 static/data/swagger.json: scripts/fetch-swagger.sh
 	./scripts/fetch-swagger.sh
@@ -182,13 +185,13 @@ flags:
 docker-image-influx:
 	@cp .gitignore .dockerignore
 	@docker image build -t influxdb:dev --target influx .
-	
+
 dshell-image:
 	@cp .gitignore .dockerignore
 	@docker image build --build-arg "USERID=$(shell id -u)" -t influxdb:dshell --target dshell .
 
 dshell: dshell-image
-	@docker container run --rm -p 8086:8086 -p 8080:8080 -u $(shell id -u) -it -v $(shell pwd):/code -w /code influxdb:dshell 
+	@docker container run --rm -p 8086:8086 -p 8080:8080 -u $(shell id -u) -it -v $(shell pwd):/code -w /code influxdb:dshell
 
 # .PHONY targets represent actions that do not create an actual file.
 .PHONY: all $(SUBDIRS) run fmt checkfmt tidy checktidy checkgenerate test test-go test-go-race test-tls bench clean node_modules vet nightly dist protoc influxd libflux flags dshell dclean docker-image-flux docker-image-influx pkg-config

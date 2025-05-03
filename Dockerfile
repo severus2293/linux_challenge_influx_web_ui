@@ -1,5 +1,12 @@
-# Базовый образ с Go для сборки influxd
-FROM golang:1.23 AS builder
+# Сборка фронтенда
+FROM node:20 AS frontend-builder
+
+WORKDIR /frontend
+COPY frontend/ .
+RUN yarn install && yarn build
+
+# Базовый образ с Go для сборки бэкенда
+FROM golang:1.23 AS backend-builder
 
 # Устанавливаем зависимости для protoc, make и Rust
 RUN apt-get update && apt-get install -y \
@@ -12,16 +19,19 @@ RUN apt-get update && apt-get install -y \
     && cargo --version
 
 # Устанавливаем рабочую директорию
-WORKDIR /go/src/influxdb
+WORKDIR /go/src/backend
 
-# Копируем файлы go.mod и go.sum из папки influxdb для кэширования зависимостей
-COPY influxdb/go.mod influxdb/go.sum ./
+# Копируем файлы go.mod и go.sum для кэширования зависимостей
+COPY backend/go.mod backend/go.sum ./
 
 # Загружаем зависимости
 RUN go mod download
 
-# Копируем остальные исходники из папки influxdb
-COPY influxdb/ .
+# Копируем остальные исходники бэкенда
+COPY backend/ .
+
+# Копируем собранные UI-ассеты из frontend-builder
+COPY --from=frontend-builder /frontend/build ./static/data/build
 
 # Собираем influxd
 RUN . $HOME/.cargo/env && make build \
@@ -77,8 +87,11 @@ RUN case "$(dpkg --print-architecture)" in \
     gosu --version && \
     gosu nobody true
 
-# Копируем influxd из стадии builder
-COPY --from=builder /go/src/influxdb/bin/linux/influxd /usr/local/bin/influxd
+# Копируем influxd из стадии backend-builder
+COPY --from=backend-builder /go/src/backend/bin/linux/influxd /usr/local/bin/influxd
+
+# Копируем собранный фронтенд
+COPY --from=frontend-builder /frontend/build /usr/local/share/influxdb/static
 
 # Устанавливаем influx CLI
 ENV INFLUX_CLI_VERSION=2.7.5
@@ -122,7 +135,7 @@ VOLUME /var/lib/influxdb2 /etc/influxdb2 /docker-entrypoint-initdb.d
 # Открываем порт
 EXPOSE 8086
 
-# Задаем переменные окружения из оригинального Dockerfile
+# Задаем переменные окружения
 ENV INFLUX_CONFIGS_PATH=/etc/influxdb2/influx-configs
 ENV INFLUXD_INIT_PORT=9999
 ENV INFLUXD_INIT_PING_ATTEMPTS=600
