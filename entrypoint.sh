@@ -1,38 +1,7 @@
 #!/bin/bash
 set -eo pipefail
 
-## READ ME
-##
-## This script handles a few use-cases:
-##   1. Running arbitrary shell commands other than `influxd`
-##   2. Running subcommands of `influxd` other than `run`
-##   3. Running `influxd run` with no auto-setup or auto-upgrade behavior
-##   4. Running `influxd` with automated setup of a fresh 2.x DB
-##   5. Running `influxd` with automated upgrade from a 1.x DB
-##
-## Use-cases 4 and 5 both optionally support running user-mounted scripts against the
-## initialized DB to perform arbitrary setup logic.
-##
-## Use-case 1 runs as root (the container's default user). All other use-cases
-## run as a non-root user. To support this, the script attempts to handle chown-ing
-## the data directories specified in config/env/CLI flags. We do this even for
-## use-case 2 so that commands like `influxd inspect` which modify files in the data
-## directory don't create files will later be inaccessible to the main `influxd run`
-## process.
-##
-## Use-case 4 requires booting a temporary instance of `influxd` so we can access the
-## server's HTTP API. This script handles tracking the PID of that instance and shutting
-## it down appropriately. The instance is booted on a port other than what's specified in
-## config. We do this so:
-##   1. We can ignore any TLS settings in config while performing initial setup calls
-##   2. We don't have to worry about users accessing the DB before it's fully initialized
-##
-## Use-case 5 requires booting a temporary instance only when the user has mounted setup scripts.
-## If no scripts are present, we can `upgrade` and then immediately boot the server on the
-## user-configured port.
-
-
-# Do our best to match the logging requested by the user running the container.
+# Логирование в стиле официального скрипта
 declare -rA LOG_LEVELS=( [error]=0 [warn]=1 [info]=2 [debug]=3 )
 declare LOG_LEVEL=error
 
@@ -164,7 +133,6 @@ function influxd::config::get()
   #
   # Parse Value from Configuration
   #
-
   dasel -f "${INFLUXD_CONFIG_PATH}" -s "${primary_key}" -w - 2>/dev/null || \
     table::get "${primary_key}" "${COLUMN_DEFAULT}"
 }
@@ -196,7 +164,7 @@ function create_directories () {
 # Read password and username from file to avoid unsecure env variables
 if [ -n "${DOCKER_INFLUXDB_INIT_PASSWORD_FILE}" ]; then [ -e "${DOCKER_INFLUXDB_INIT_PASSWORD_FILE}" ] && DOCKER_INFLUXDB_INIT_PASSWORD=$(cat "${DOCKER_INFLUXDB_INIT_PASSWORD_FILE}") || echo "DOCKER_INFLUXDB_INIT_PASSWORD_FILE defined, but file not existing, skipping."; fi
 if [ -n "${DOCKER_INFLUXDB_INIT_USERNAME_FILE}" ]; then [ -e "${DOCKER_INFLUXDB_INIT_USERNAME_FILE}" ] && DOCKER_INFLUXDB_INIT_USERNAME=$(cat "${DOCKER_INFLUXDB_INIT_USERNAME_FILE}") || echo "DOCKER_INFLUXDB_INIT_USERNAME_FILE defined, but file not existing, skipping."; fi
-if [ -n "${DOCKER_INFLUXDB_INIT_ADMIN_TOKEN_FILE}" ]; then [ -e "${DOCKER_INFLUXDB_INIT_ADMIN_TOKEN_FILE}" ] && DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=$(cat "${DOCKER_INFLUXDB_INIT_ADMIN_TOKEN_FILE}") || echo "DOCKER_INFLUXDB_INIT_USERNAME_FILE defined, but file not existing, skipping."; fi
+if [ -n "${DOCKER_INFLUXDB_INIT_ADMIN_TOKEN_FILE}" ]; then [ -e "${DOCKER_INFLUXDB_INIT_ADMIN_TOKEN_FILE}" ] && DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=$(cat "${DOCKER_INFLUXDB_INIT_ADMIN_TOKEN_FILE}") || echo "DOCKER_INFLUXDB_INIT_ADMIN_TOKEN_FILE defined, but file not existing, skipping."; fi
 
 # List of env vars required to auto-run setup or upgrade processes.
 declare -ra REQUIRED_INIT_VARS=(
@@ -226,55 +194,6 @@ function ensure_init_vars_set () {
 function cleanup_influxd () {
     log warn "cleaning bolt and engine files to prevent conflicts on retry" bolt_path "${BOLT_PATH}" engine_path "${ENGINE_PATH}"
     rm -rf "${BOLT_PATH}" "${ENGINE_PATH}/"*
-}
-
-# Upgrade V1 data into the V2 format using influxd upgrade.
-# The process will use either a V1 config file or a V1 data dir to drive
-# the upgrade, with precedence order:
-#   1. Config file pointed to by DOCKER_INFLUXDB_INIT_UPGRADE_V1_CONFIG env var
-#   2. Data dir pointed to by DOCKER_INFLUXDB_INIT_UPGRADE_V1_DIR env var
-#   3. Config file at /etc/influxdb/influxdb.conf
-#   4. Data dir at /var/lib/influxdb
-function upgrade_influxd () {
-    local -a upgrade_args=(
-        --force
-        --username "${DOCKER_INFLUXDB_INIT_USERNAME}"
-        --password "${DOCKER_INFLUXDB_INIT_PASSWORD}"
-        --org "${DOCKER_INFLUXDB_INIT_ORG}"
-        --bucket "${DOCKER_INFLUXDB_INIT_BUCKET}"
-        --v2-config-path "${CONFIG_VOLUME}/config.toml"
-        --influx-configs-path "${INFLUX_CONFIGS_PATH}"
-        --continuous-query-export-path "${CONFIG_VOLUME}/v1-cq-export.txt"
-        --log-path "${CONFIG_VOLUME}/upgrade.log"
-        --log-level "${LOG_LEVEL}"
-        --bolt-path "${BOLT_PATH}"
-        --engine-path "${ENGINE_PATH}"
-        --overwrite-existing-v2
-    )
-    if [ -n "${DOCKER_INFLUXDB_INIT_RETENTION}" ]; then
-        upgrade_args=("${upgrade_args[@]}" --retention "${DOCKER_INFLUXDB_INIT_RETENTION}")
-    fi
-    if [ -n "${DOCKER_INFLUXDB_INIT_ADMIN_TOKEN}" ]; then
-        upgrade_args=("${upgrade_args[@]}" --token "${DOCKER_INFLUXDB_INIT_ADMIN_TOKEN}")
-    fi
-
-    if [[ -n "${DOCKER_INFLUXDB_INIT_UPGRADE_V1_CONFIG}" && -f "${DOCKER_INFLUXDB_INIT_UPGRADE_V1_CONFIG}" ]]; then
-        upgrade_args=("${upgrade_args[@]}" --config-file "${DOCKER_INFLUXDB_INIT_UPGRADE_V1_CONFIG}")
-    elif [[ -n "${DOCKER_INFLUXDB_INIT_UPGRADE_V1_DIR}" && -d "${DOCKER_INFLUXDB_INIT_UPGRADE_V1_DIR}" ]]; then
-        upgrade_args=("${upgrade_args[@]}" --v1-dir "${DOCKER_INFLUXDB_INIT_UPGRADE_V1_DIR}")
-    elif [ -f /etc/influxdb/influxdb.conf ]; then
-        upgrade_args=("${upgrade_args[@]}" --config-file /etc/influxdb/influxdb.conf)
-    elif [ -d /var/lib/influxdb ]; then
-        upgrade_args=("${upgrade_args[@]}" --v1-dir /var/lib/influxdb)
-    else
-        log error "failed to autodetect usable V1 config or data dir, aborting upgrade"
-        exit 1
-    fi
-
-    influxd upgrade "${upgrade_args[@]}"
-
-    # Reset global influxd config to pick up new file written by the upgrade process.
-    set_config_path
 }
 
 # Ping influxd until it responds or crashes.
@@ -322,7 +241,7 @@ function setup_influxd () {
 # Get the IDs of the initial user/org/bucket created during setup, and export them into the env.
 # We do this to help with arbitrary user scripts, since many influx CLI commands only take IDs.
 function set_init_resource_ids () {
-    DOCKER_INFLUXDB_INIT_USER_ID="$(influx user list -n "${DOCKER_INFLUXDB_INIT_USER}" --hide-headers | cut -f 1)"
+    DOCKER_INFLUXDB_INIT_USER_ID="$(influx user list -n "${DOCKER_INFLUXDB_INIT_USERNAME}" --hide-headers | cut -f 1)"
     DOCKER_INFLUXDB_INIT_ORG_ID="$(influx org list -n "${DOCKER_INFLUXDB_INIT_ORG}" --hide-headers | cut -f 1)"
     DOCKER_INFLUXDB_INIT_BUCKET_ID="$(influx bucket list -n "${DOCKER_INFLUXDB_INIT_BUCKET}" --hide-headers | cut -f 1)"
     export DOCKER_INFLUXDB_INIT_USER_ID DOCKER_INFLUXDB_INIT_ORG_ID DOCKER_INFLUXDB_INIT_BUCKET_ID
@@ -358,25 +277,12 @@ function handle_signal () {
 # Perform initial setup on the InfluxDB instance, either by setting up fresh metadata
 # or by upgrading existing V1 data.
 function init_influxd () {
-    if [[ "${DOCKER_INFLUXDB_INIT_MODE}" != setup && "${DOCKER_INFLUXDB_INIT_MODE}" != upgrade ]]; then
-        log error "found invalid DOCKER_INFLUXDB_INIT_MODE, valid values are 'setup' and 'upgrade'" DOCKER_INFLUXDB_INIT_MODE "${DOCKER_INFLUXDB_INIT_MODE}"
+    if [[ "${DOCKER_INFLUXDB_INIT_MODE}" != setup ]]; then
+        log error "found invalid DOCKER_INFLUXDB_INIT_MODE, only 'setup' is supported" DOCKER_INFLUXDB_INIT_MODE "${DOCKER_INFLUXDB_INIT_MODE}"
         exit 1
     fi
     ensure_init_vars_set
     trap "cleanup_influxd" EXIT
-
-    # The upgrade process needs to run before we boot the server, otherwise the
-    # boltdb file will be generated and cause conflicts.
-    if [ "${DOCKER_INFLUXDB_INIT_MODE}" = upgrade ]; then
-        upgrade_influxd
-    fi
-
-    # Short-circuit if using upgrade mode and user didn't define any custom scripts,
-    # to save startup time from booting & shutting down the server.
-    if [ "${DOCKER_INFLUXDB_INIT_MODE}" = upgrade ] && ! user_scripts_present; then
-        trap - EXIT
-        return
-    fi
 
     local -r final_bind_addr="$(influxd::config::get http-bind-address "${@}")"
     local -r init_bind_addr=":${INFLUXD_INIT_PORT}"
@@ -411,7 +317,7 @@ function init_influxd () {
 
     # Start influxd in the background.
     log info "booting influxd server in the background"
-    INFLUXD_CONFIG_PATH="${init_config}" INFLUXD_HTTP_BIND_ADDRESS="${init_bind_addr}" INFLUXD_TLS_CERT='' INFLUXD_TLS_KEY='' influxd &
+    INFLUXD_CONFIG_PATH="${init_config}" INFLUXD_HTTP_BIND_ADDRESS="${init_bind_addr}" INFLUXD_TLS_CERT='' INFLUXD_TLS_KEY='' /usr/local/bin/influxd &
     local -r influxd_init_pid="$!"
     trap "handle_signal TERM ${influxd_init_pid}" TERM
     trap "handle_signal INT ${influxd_init_pid}" INT
@@ -420,9 +326,7 @@ function init_influxd () {
     wait_for_influxd "${influxd_init_pid}"
 
     # Use the influx CLI to create an initial user/org/bucket.
-    if [ "${DOCKER_INFLUXDB_INIT_MODE}" = setup ]; then
-        setup_influxd
-    fi
+    setup_influxd
 
     set_init_resource_ids
     run_user_scripts
@@ -449,8 +353,6 @@ function check_help_flag () {
 
 function main () {
     # Ensure INFLUXD_CONFIG_PATH is set.
-    # We do this even if we're not running the main influxd server so subcommands
-    # (i.e. print-config) still find the right config values.
     set_config_path
 
     local run_influxd=false
@@ -484,18 +386,16 @@ function main () {
         log warn "boltdb not found at configured path, but DOCKER_INFLUXDB_INIT_MODE not specified, skipping setup wrapper" bolt_path "${BOLT_PATH}"
     else
         init_influxd "${@}"
-        # Set correct permission on volume directories again. This is necessary so that if the container was run as the
-        # root user, the files from the automatic upgrade/initialization will be correctly set when stepping down to the
-        # influxdb user.
+        # Set correct permission on volume directories again.
         create_directories
     fi
 
     if [ "$(id -u)" = 0 ]; then
-        exec su-exec influxdb "$BASH_SOURCE" "${@}"
+        exec gosu influxdb "$BASH_SOURCE" "${@}"
     fi
 
     # Run influxd.
-    exec influxd "${@}"
+    exec /usr/local/bin/influxd "${@}"
 }
 
 main "${@}"
