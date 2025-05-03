@@ -1,0 +1,61 @@
+.flux-editor {
+  position: absolute;
+  top: $cf-space-2xs;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+}
+
+// Monaco Editor
+.flux-editor--left-panel {
+  flex: 1 0 0;
+  position: relative;
+  border-radius: $cf-radius;
+}
+
+// Variables / Functions List
+.flux-editor--right-panel {
+  margin-left: $cf-space-2xs;
+  display: flex;
+}
+
+.qx-editor--monaco {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+
+  &.qx-editor--monaco__autogrow {
+    position: initial;
+    top: initial;
+    left: initial;
+    width: initial;
+    height: initial;
+  }
+}
+
+.time-machine-editor--embedded {
+  @extend .qx-editor--monaco;
+  border-radius: $cf-radius;
+  border: $cf-border solid $cf-grey-25;
+  overflow: hidden;
+}
+
+.time-machine-editor--loading {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background: #292933;
+
+  &:after {
+    content: '';
+    position: absolute;
+    background: #202028;
+    top: 8px;
+    bottom: 8px;
+    left: 24px;
+    right: 8px;
+  }
+}

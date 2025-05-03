@@ -1,0 +1,6 @@
+let query = """
+            <%= query %>"""
+
+let records = try await client.queryAPI.query(query: query, org: org)
+try records.forEach { print(" > \($0.values["_field"]!): \($0.values["_value"]!)") }
+

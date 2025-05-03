@@ -1,0 +1,112 @@
+@import '@influxdata/clockface/dist/variables.scss';
+
+.data-explorer-results {
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  border: 2px solid transparent;
+  background-color: $cf-grey-15;
+  padding: $cf-space-2xs;
+  overflow: hidden;
+}
+
+.data-explorer-results--timezone {
+  flex-grow: 1;
+  flex-direction: row-reverse;
+  display: flex;
+}
+
+.data-explorer-results--header {
+  width: 100%;
+}
+
+.data-explorer-results--empty {
+  height: 100%;
+  display: flex;
+}
+
+.data-explorer-results--view {
+  height: 100%;
+  width: 100%;
+  padding: 12;
+
+  .visualization--simple-table--results {
+    margin-top: $cf-space-s;
+  }
+
+  table,
+  .giraffe-plot {
+    background-color: black;
+  }
+}
+
+.data-explorer-results--empty-header {
+  align-self: center;
+  text-align: center;
+  color: $cf-grey-55;
+
+  h3 {
+    margin: 0;
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+.data-explorer--monaco-outer {
+  flex-grow: 1;
+  position: relative;
+  width: 100%;
+}
+
+.data-explorer--monaco-wrap {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+.data-explorer--error-gutter {
+  color: $c-fire;
+  background-color: $cf-grey-15;
+  width: 100%;
+  display: flex;
+  max-height: $cf-space-2xl;
+  overflow-y: scroll;
+
+  .cf-icon {
+    padding: $cf-space-2xs $cf-space-s;
+    font-size: $cf-text-base-2;
+  }
+
+  pre {
+    padding: $cf-space-2xs 0;
+    font-family: $cf-code-font;
+    white-space: pre-line;
+  }
+}
+
+.data-explorer--control {
+  width: 100%;
+  padding: 0 $cf-space-2xs $cf-space-3xs $cf-space-2xs;
+}
+
+.query-stat {
+  padding: $cf-space-2xs 0;
+}
+
+.query-stat--bold {
+  font-weight: $cf-font-weight--medium;
+  color: $cf-grey-75;
+  padding-left: $cf-space-2xs;
+  padding-right: $cf-space-s;
+}
+
+.query-stat--normal {
+  color: $cf-grey-55;
+  padding: 0 $cf-space-2xs;
+}
+
+.de-config-visualization-button {
+  margin-left: $cf-space-2xs;
+}

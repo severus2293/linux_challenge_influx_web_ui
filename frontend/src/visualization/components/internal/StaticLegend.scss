@@ -1,0 +1,15 @@
+@import '@influxdata/clockface/dist/variables.scss';
+
+.static-legend-options {
+  .latest-axis-label {
+    color: $cf-grey-65;
+  }
+}
+
+.latest-y-axis {
+  margin-bottom: $cf-space-2xs;
+}
+
+.static-legend-height-slider {
+  margin-bottom: $cf-space-s;
+}

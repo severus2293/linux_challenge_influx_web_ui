@@ -1,0 +1,16 @@
+.variables-control-bar .toolbar--contents {
+  padding: 0;
+}
+
+.variables-control-bar--grid {
+  border-radius: $cf-radius;
+  padding: $cf-space-2xs;
+  width: 100%;
+  display: flex;
+  transition: box-shadow 0.25s ease;
+  flex-wrap: wrap;
+}
+
+.variables-control-bar--grid__dragging-over {
+  box-shadow: 0 0 4px 1px $c-void;
+}

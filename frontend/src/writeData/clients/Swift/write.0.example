@@ -1,0 +1,4 @@
+let recordString = "demo,type=string value=1i"
+
+try await client.makeWriteAPI().write(bucket: bucket, org: org, record: recordString)
+

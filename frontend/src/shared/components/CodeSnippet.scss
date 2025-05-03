@@ -1,0 +1,57 @@
+/*
+  Code Snippet Widget
+  ------------------------------------------------------------------------------
+*/
+
+.code-snippet {
+  border-radius: $cf-radius;
+  overflow: hidden;
+  border: $cf-border solid $cf-grey-15;
+  margin-bottom: $cf-space-2xs;
+}
+
+.code-snippet--scroll {
+  min-height: 26px !important;
+  max-height: 350px;
+  border-radius: $cf-radius-sm;
+  overflow: hidden;
+}
+
+.code-snippet--text {
+  font-size: $cf-form-md-font;
+  color: $c-potassium;
+  font-family: $cf-code-font;
+  border-radius: $cf-radius;
+  background-color: $cf-grey-5;
+
+  pre {
+    display: inline-block;
+    white-space: pre-wrap;
+    padding: $cf-space-2xs $cf-space-s;
+  }
+
+  pre,
+  code {
+    word-wrap: break-word;
+    word-break: break-all;
+  }
+}
+
+.new-token--btn {
+  margin: $cf-space-3xs $cf-space-s;
+}
+
+.code-snippet--footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $cf-space-2xs $cf-space-s;
+  border-top: $cf-border solid $cf-grey-15;
+  background-color: $cf-grey-15;
+}
+
+.code-snippet--label {
+  font-size: $cf-text-base;
+  color: $cf-grey-65;
+  margin: 0;
+}

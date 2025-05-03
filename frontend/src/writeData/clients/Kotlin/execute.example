@@ -1,0 +1,8 @@
+val query = """<%= query %>"""
+
+// Result is returned as a stream
+val results = client.getQueryKotlinApi().query(query)
+
+results
+  .consumeAsFlow()
+  .collect { println("$it") }

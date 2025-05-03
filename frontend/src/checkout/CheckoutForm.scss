@@ -1,0 +1,98 @@
+@import '@influxdata/clockface/dist/variables.scss';
+
+.cf-funnel-page--footer .cf-cta-button {
+  margin: $cf-space-s 0;
+}
+
+.powered-by-payment-header {
+  width: 100%;
+}
+
+.billing-form--frame {
+  position: relative;
+}
+
+.v2-zuora-form {
+  min-height: 226px;
+}
+
+.checkout--panel {
+  overflow: hidden;
+  max-height: 140px;
+}
+
+.checkout-credit-250--banner {
+  font-size: 18px;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
+.checkout-credit-250--banner-icon {
+  padding-top: 1px;
+}
+
+.checkout-credit-250--banner-message {
+  margin-left: $cf-marg-b;
+}
+
+.checkout-form--banner {
+  background: linear-gradient(
+    45deg,
+    rgb(52, 187, 85) 0%,
+    rgb(0, 163, 255) 100%
+  );
+  box-sizing: border-box;
+  position: absolute;
+  top: 0px;
+  right: 35px;
+  width: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: black;
+  transform: translate(50%) rotate(45deg);
+  transform-origin: center;
+
+  padding-right: 15px;
+  p {
+    margin: 8px 0px;
+  }
+  .checkout-banner--credit {
+    margin-top: 8px;
+    color: black;
+  }
+}
+/* Zuora Payment Widget */
+#zuora_payment {
+  & > iframe {
+    background-color: transparent;
+    width: 100%;
+  }
+}
+
+@media screen and (max-width: $cf-grid--breakpoint-md) {
+  .checkout-form--banner {
+    position: relative;
+    height: auto;
+    display: flex;
+    rotate: 0deg;
+    bottom: 0;
+    top: 0;
+    left: 0;
+    flex-direction: row;
+    width: 100%;
+    transform: translate(0%) rotate(0deg);
+    border-radius: 8px;
+    .checkout-banner--credit {
+      margin-top: 0px;
+      padding-right: 8px;
+    }
+  }
+
+  .checkout--panel {
+    height: auto;
+    max-height: none;
+  }
+}

@@ -1,0 +1,257 @@
+// Libraries
+import React, {FC, memo, useRef, RefObject, useState} from 'react'
+import {useHistory, useLocation} from 'react-router-dom'
+import {useDispatch} from 'react-redux'
+import {get} from 'lodash'
+import classnames from 'classnames'
+
+// Utils
+import {event} from 'src/cloud/utils/reporting'
+import {copy} from 'src/shared/components/CopyToClipboard'
+import {
+  copyQuerySuccess,
+  copyQueryFailure,
+} from 'src/shared/copy/notifications/categories/dashboard'
+
+// Components
+import {
+  Popover,
+  Appearance,
+  Icon,
+  IconFont,
+  PopoverInteraction,
+} from '@influxdata/clockface'
+import CellContextItem from 'src/shared/components/cells/CellContextItem'
+import CellContextDangerItem from 'src/shared/components/cells/CellContextDangerItem'
+
+// Actions
+import {deleteCellAndView, createCellWithView} from 'src/cells/actions/thunks'
+import {showOverlay, dismissOverlay} from 'src/overlays/actions/overlays'
+import {notify} from 'src/shared/actions/notifications'
+
+// Types
+import {Cell, View} from 'src/types'
+
+interface Props {
+  cell: Cell
+  view: View
+  onRefresh: () => void
+  isPaused: boolean
+  togglePauseCell: () => void
+}
+
+const CellContext: FC<Props> = ({
+  view,
+  cell,
+  onRefresh,
+  isPaused,
+  togglePauseCell,
+}) => {
+  const history = useHistory()
+  const location = useLocation()
+  const dispatch = useDispatch()
+  const [popoverVisible, setPopoverVisibility] = useState<boolean>(false)
+  const editNoteText = !!get(view, 'properties.note') ? 'Edit Note' : 'Add Note'
+  const triggerRef: RefObject<HTMLButtonElement> =
+    useRef<HTMLButtonElement>(null)
+  const buttonClass = classnames('cell--context', {
+    'cell--context__active': popoverVisible,
+  })
+
+  const handleCloneCell = () => {
+    dispatch(createCellWithView(cell.dashboardID, view, cell))
+  }
+
+  const handleDeleteCell = (): void => {
+    const viewID = view.id
+    const {dashboardID, id} = cell
+
+    dispatch(deleteCellAndView(dashboardID, id, viewID))
+  }
+
+  const handleEditNote = () => {
+    if (view.id) {
+      history.push(`${location.pathname}/notes/${view.id}/edit`)
+    } else {
+      history.push(`${location.pathname}/notes/new`)
+    }
+  }
+
+  const handleEditCell = (): void => {
+    history.push(`${location.pathname}/cells/${cell.id}/edit`)
+    event('editCell button Click')
+  }
+
+  const handleCopyQuery = async () => {
+    let result = false
+    // this 'in' check satisfies TypeScript saying `property queries does not exist in ViewProperties` (which is a lie)
+    if ('queries' in view.properties) {
+      result = await copy(view.properties.queries?.[0]?.text)
+    }
+
+    if (!result) {
+      dispatch(notify(copyQueryFailure(cell.name)))
+      return
+    }
+    dispatch(notify(copyQuerySuccess(cell.name)))
+  }
+
+  const popoverContents = (onHide): JSX.Element => {
+    if (view.properties.type === 'markdown') {
+      return (
+        <div className="cell--context-menu">
+          <CellContextItem
+            label="Edit Note"
+            onClick={handleEditNote}
+            icon={IconFont.Text_New}
+            onHide={onHide}
+            testID="cell-context--note"
+          />
+          <CellContextItem
+            label="Clone"
+            onClick={handleCloneCell}
+            icon={IconFont.Duplicate_New}
+            onHide={onHide}
+            testID="cell-context--clone"
+          />
+          <CellContextItem
+            label="Move"
+            onClick={() =>
+              dispatch(
+                showOverlay(
+                  'cell-copy-overlay',
+                  {
+                    view,
+                    cell,
+                  },
+                  () => dispatch(dismissOverlay())
+                )
+              )
+            }
+            icon={IconFont.Export_New}
+            onHide={onHide}
+            testID="cell-context--copy"
+          />
+          <CellContextDangerItem
+            label="Delete"
+            onClick={handleDeleteCell}
+            icon={IconFont.Trash_New}
+            onHide={onHide}
+            testID="cell-context--delete"
+          />
+        </div>
+      )
+    }
+
+    return (
+      <div className="cell--context-menu">
+        <CellContextItem
+          label="Configure"
+          onClick={handleEditCell}
+          icon={IconFont.Pencil}
+          onHide={onHide}
+          testID="cell-context--configure"
+        />
+        <CellContextItem
+          label={editNoteText}
+          onClick={handleEditNote}
+          icon={IconFont.Text_New}
+          onHide={onHide}
+          testID="cell-context--note"
+        />
+        <CellContextItem
+          label="Clone"
+          onClick={handleCloneCell}
+          icon={IconFont.Duplicate_New}
+          onHide={onHide}
+          testID="cell-context--clone"
+        />
+        <CellContextDangerItem
+          label="Delete"
+          onClick={handleDeleteCell}
+          icon={IconFont.Trash_New}
+          onHide={onHide}
+          testID="cell-context--delete"
+        />
+        <CellContextItem
+          label="Refresh"
+          onClick={onRefresh}
+          icon={IconFont.Refresh_New}
+          onHide={onHide}
+          testID="cell-context--refresh"
+        />
+        <CellContextItem
+          label={isPaused ? 'Resume' : 'Pause'}
+          onClick={togglePauseCell}
+          icon={isPaused ? IconFont.Play : IconFont.Pause}
+          onHide={onHide}
+          testID="cell-context--pause"
+        />
+        <CellContextItem
+          label="Move"
+          onClick={() =>
+            dispatch(
+              showOverlay(
+                'cell-copy-overlay',
+                {
+                  view,
+                  cell,
+                },
+                () => dispatch(dismissOverlay())
+              )
+            )
+          }
+          icon={IconFont.Export_New}
+          onHide={onHide}
+          testID="cell-context--copy"
+        />
+        {view.properties?.queries?.length && (
+          <CellContextItem
+            label="Copy Query"
+            onClick={handleCopyQuery}
+            icon={IconFont.Clipboard_New}
+            onHide={onHide}
+            testID="cell-context--copy-query"
+          />
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <>
+      {isPaused && (
+        <button
+          className={buttonClass}
+          onClick={togglePauseCell}
+          data-testid="cell-context--pause-resume"
+        >
+          <Icon glyph={IconFont.Pause} />
+        </button>
+      )}
+      <button
+        className={buttonClass}
+        ref={triggerRef}
+        data-testid="cell-context--toggle"
+      >
+        <Icon glyph={IconFont.CogSolid_New} />
+      </button>
+      <Popover
+        appearance={Appearance.Outline}
+        enableDefaultStyles={false}
+        showEvent={PopoverInteraction.Click}
+        hideEvent={PopoverInteraction.Click}
+        triggerRef={triggerRef}
+        contents={popoverContents}
+        onShow={() => {
+          setPopoverVisibility(true)
+        }}
+        onHide={() => {
+          setPopoverVisibility(false)
+        }}
+      />
+    </>
+  )
+}
+
+export default memo(CellContext)

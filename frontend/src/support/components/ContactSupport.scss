@@ -1,0 +1,42 @@
+.help-logo {
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  height: 25px;
+  width: 25px;
+  margin-right: 5px;
+}
+.help-logo.forum {
+  background-image: url('../../../assets/images/Forum.svg');
+}
+.help-logo.slack {
+  background-image: url('../../../assets/images/slack-fill.svg');
+  filter: invert(59%) sepia(51%) saturate(7472%) hue-rotate(180deg)
+    brightness(107%) contrast(110%);
+}
+
+.cf-list--contents {
+  padding: 0px;
+}
+
+.status-page-text {
+  font-weight: lighter;
+  margin-top: 0px;
+
+  .info-new {
+    bottom: 1px;
+    position: relative;
+  }
+}
+
+div.cf-form--label {
+  position: relative;
+
+  .cf-question-mark-tooltip {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+  }
+}
+.cf-banner-panel--contents {
+  margin-top: 0;
+}

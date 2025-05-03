@@ -1,0 +1,33 @@
+@import '@influxdata/clockface/dist/variables.scss';
+
+.org-profile-tab--heading {
+  margin-top: $cf-space-m;
+  margin-bottom: $cf-space-2xs;
+}
+
+.org-profile-tab--details {
+  width: 85%;
+}
+
+.org-profile-tab--deleteHeading {
+  margin-bottom: $cf-space-s;
+}
+
+.org-profile-tab--section {
+  align-self: stretch;
+  margin-top: $cf-space-l;
+  margin-bottom: $cf-space-l;
+  margin-right: $cf-space-3xl;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+}
+
+.org-profile-tab--copyableText {
+  min-width: 500px;
+}
+
+.org-profile-tab--leaveOrgButton {
+  width: auto !important;
+  padding-left: 8px;
+  padding-right: 8px;
+}

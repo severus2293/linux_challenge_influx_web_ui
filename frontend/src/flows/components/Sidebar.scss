@@ -1,0 +1,75 @@
+@import '@influxdata/clockface/dist/variables.scss';
+
+.flow-sidebar {
+  flex: 0 0 calc(420px - $cf-space-2xs);
+  width: 420px - $cf-space-2xs;
+  padding: 0 $cf-space-2xs;
+
+  .sidebar--item {
+    width: 137px;
+    height: 137px;
+
+    .cf-selectable-card--body {
+      overflow: hidden;
+    }
+
+    .cf-selectable-card--children {
+      width: calc(100% - 48px);
+      height: calc(100% - 48px);
+    }
+  }
+  .sidebar--item-thumb {
+    width: 100%;
+    height: 100%;
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+  }
+
+  .flux-toolbar--search {
+    padding: 0;
+  }
+}
+
+.flow-sidebar--submenu {
+  padding-top: $cf-space-2xs;
+  height: calc(
+    100% - 30px
+  ); // this is due to a scrollbar issue where the height of the button above it makes the 100% height unreachable: https://github.com/influxdata/ui/issues/2474
+  display: flex;
+}
+
+.flow-sidebar--submenu-wrapper {
+  width: calc(100% - 16px);
+  padding-bottom: 20px;
+}
+
+.flow-sidebar--dropdownmenu {
+  position: absolute;
+  top: 38px;
+  right: 0;
+  z-index: 9999;
+  padding: 10px 0px;
+}
+.flow-sidebar--dropdownmenu-container {
+  display: flex;
+  flex-direction: column;
+  margin: 0 $cf-space-2xs;
+}
+
+.flow-sidebar--buttons {
+  text-align: right;
+}
+
+.flow-sidebar--secrets-list {
+  margin-right: -16px;
+}
+
+.cf-overlay--dismiss {
+  &:before,
+  &:after {
+    background-color: $cf-grey-65;
+  }
+}

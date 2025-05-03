@@ -1,0 +1,78 @@
+// Libraries
+import React, {FC, useState} from 'react'
+import {useSelector} from 'react-redux'
+import {
+  Panel,
+  ComponentSize,
+  ComponentColor,
+  Button,
+} from '@influxdata/clockface'
+import {track} from 'rudder-sdk-js'
+
+// Components
+import {CancellationOverlay} from 'src/billing/components/PayAsYouGo/CancellationOverlay'
+
+// Selectors
+import {selectCurrentIdentity} from 'src/identity/selectors'
+
+// Utils
+import {isFlagEnabled} from 'src/shared/utils/featureFlag'
+import {event} from 'src/cloud/utils/reporting'
+
+// Contexts
+import {CancelServiceProvider} from 'src/billing/components/PayAsYouGo/CancelServiceContext'
+
+const CancellationPanel: FC = () => {
+  const [isOverlayVisible, setIsOverlayVisible] = useState(false)
+  const {account, org, user} = useSelector(selectCurrentIdentity)
+
+  const handleCancelService = () => {
+    const payload = {
+      org: org.id,
+      tier: account.type,
+      email: user.email,
+    }
+    event('CancelServiceInitiation Event', payload)
+
+    if (isFlagEnabled('rudderstackReporting')) {
+      track('CancelServiceInitiation', payload)
+    }
+
+    setIsOverlayVisible(true)
+  }
+
+  return (
+    <>
+      <Panel>
+        <Panel.Header
+          size={ComponentSize.Medium}
+          testID="cancel-service--header"
+        >
+          <h4>Cancel Service</h4>
+          <Button
+            color={ComponentColor.Default}
+            onClick={handleCancelService}
+            text="Cancel Service"
+            size={ComponentSize.Small}
+            testID="cancel-service--button"
+          />
+        </Panel.Header>
+        <Panel.Body size={ComponentSize.Medium}>
+          <p>
+            You only pay for what you use. To temporarily pause your service,
+            just shut off your writes and queries.
+          </p>
+        </Panel.Body>
+      </Panel>
+      {isOverlayVisible && (
+        <CancelServiceProvider>
+          <CancellationOverlay
+            onHideOverlay={() => setIsOverlayVisible(false)}
+          />
+        </CancelServiceProvider>
+      )}
+    </>
+  )
+}
+
+export default CancellationPanel

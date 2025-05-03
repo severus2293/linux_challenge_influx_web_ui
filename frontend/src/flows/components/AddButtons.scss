@@ -1,0 +1,34 @@
+@import '@influxdata/clockface/dist/variables.scss';
+
+.add-cell-menu {
+  display: flex;
+  align-items: stretch;
+}
+
+.add-cell-menu--column {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  flex: 1 0 160px;
+  width: ($cf-space-3xl + $cf-space-s) * 2;
+  background-color: $cf-grey-5;
+  border-radius: $cf-radius;
+  padding: 0 $cf-space-s;
+  margin-right: $cf-space-3xs;
+
+  &:last-child {
+    margin-right: 0;
+  }
+}
+
+.add-cell-menu--column .cf-button {
+  margin-bottom: $cf-space-2xs;
+}
+
+.add-cell-menu--column-title {
+  white-space: nowrap;
+  margin: $cf-space-2xs 0;
+  text-align: center;
+  padding: 0 $cf-space-2xs;
+  user-select: none;
+}

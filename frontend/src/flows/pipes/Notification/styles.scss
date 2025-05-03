@@ -1,0 +1,57 @@
+.slack-endpoint-details--flex {
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  justify-content: space-between;
+  height: 100%;
+
+  .cf-color-picker--swatches {
+    display: none;
+  }
+
+  .cf-color-picker--form > button {
+    display: none;
+  }
+
+  .cf-color-picker--form .cf-status-indicator {
+    display: none;
+  }
+
+  .cf-color-picker--input {
+    margin-right: 0px;
+  }
+
+  .cf-color-picker--form .cf-input-field {
+    height: 38px;
+    font-size: 14px;
+  }
+}
+
+.form-element--authorization {
+  width: 100%;
+  .cf-select-group {
+    display: flex;
+    justify-content: space-around;
+    width: 50%;
+  }
+}
+
+.endpoint-details--element {
+  height: 100%;
+  .cf-form--label {
+    margin-bottom: 8px;
+  }
+}
+
+.http-endpoint--flex {
+  padding: 8px;
+}
+
+.endpoint-list--element {
+  flex: 1;
+  max-width: 14%;
+}
+
+.slack-message-color--dropdown-item {
+  padding-left: 26px;
+}

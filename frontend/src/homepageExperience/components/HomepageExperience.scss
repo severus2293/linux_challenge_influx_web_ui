@@ -1,0 +1,164 @@
+@import '@influxdata/clockface/dist/variables.scss';
+@import '../../style/modules';
+
+$pool-fill: #00a3ff;
+
+h1#first-mile--header {
+  margin: 1em 0;
+}
+
+.homepage-wizard-container {
+  color: $cf-grey-95;
+  display: flex;
+  height: 100%;
+  width: 100%;
+}
+
+.homepage-wizard-container--subway-inner {
+  width: 100%;
+  position: sticky;
+  top: 0;
+}
+
+.homepage-wizard-container--subway {
+  display: flex;
+  flex-direction: column;
+  width: 30%;
+}
+
+.homepage-wizard-container--main {
+  display: flex;
+  flex-direction: column;
+  width: 70%;
+  flex: 1;
+
+  padding-bottom: 64px;
+}
+
+.homepage-wizard-container--main-wrapper {
+  h1 {
+    margin-top: 0;
+    font-weight: 600;
+  }
+
+  p {
+    font-size: $cf-text-base-1;
+  }
+
+  &.verticallyCentered {
+    margin-top: auto;
+  }
+}
+
+.homepage-wizard-container-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: auto;
+}
+
+// Write data helper CSS override for homepage experience
+
+.write-data--details-widget-title {
+  margin-bottom: $cf-space-2xs;
+  padding-left: $cf-space-2xs + $cf-space-3xs;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  text-transform: uppercase;
+}
+
+.homepage-wizard-next-steps {
+  display: flex;
+  max-width: 300px;
+  h4 {
+    background: linear-gradient(45deg, #fad9ff 0%, #f0fcff 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+
+    display: flex;
+    align-items: center;
+
+    margin: 0;
+    svg {
+      margin-right: 10px;
+    }
+  }
+
+  .cf-icon {
+    margin-right: $cf-space-2xs;
+  }
+
+  p {
+    color: $cf-grey-95;
+    font-size: 14px;
+    margin: 0;
+    font-style: normal;
+    font-weight: 300;
+    line-height: 17px;
+    text-align: left;
+  }
+
+  h5 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    letter-spacing: 0.06em;
+    margin: 0;
+  }
+}
+
+.feedback-bar {
+  background: linear-gradient(
+    256.11deg,
+    rgba(147, 148, 255, 0.2) 0%,
+    rgba(81, 60, 198, 0.2) 100%
+  );
+  padding-left: 16px;
+  padding-right: 16px;
+  max-width: 493px;
+}
+
+.homepage-wizard--code-highlight {
+  color: #b7b8ff;
+}
+
+/*
+ * Styles copied from the removed MePage.scss
+ */
+
+.recent-dashboards {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  font-size: 1.25em;
+}
+
+.recent-dashboards--item {
+  margin-bottom: $cf-space-2xs;
+  white-space: nowrap;
+  word-break: break-all;
+  padding-right: $cf-space-s;
+}
+
+.recent-dashboards--filter {
+  margin-bottom: $cf-space-2xs;
+}
+
+.docslinks-list,
+.useful-links {
+  padding: 0;
+  list-style: none;
+
+  h4 {
+    color: $cf-grey-95;
+  }
+}
+
+.docslinks-list > li {
+  font-size: 1.25em;
+  background-color: transparent;
+  border-radius: $radius;
+  padding: 0;
+  margin-bottom: $ix-marg-c;
+}

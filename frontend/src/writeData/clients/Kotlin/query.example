@@ -1,0 +1,2 @@
+from(bucket: "<%= bucket %>")
+    |> range(start: -1d)

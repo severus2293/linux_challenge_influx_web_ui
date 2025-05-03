@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "baseUrl": "../",
+    "target": "es5",
+    "lib": ["es2017", "dom"],
+    "types": ["cypress", "mocha", "node"],
+    "jsx": "react",
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+    "paths": {
+      "@src/*": ["../src/*"]
+    }
+  },
+  "include": [
+    "../node_modules/cypress/**/*",
+    "../node_modules/@types/chai/*",
+    "../**/*.ts"
+  ]
+}

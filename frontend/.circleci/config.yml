@@ -1,0 +1,184 @@
+version: 2.1
+
+jobs:
+  unit:
+    docker:
+      - image: cimg/go:1.19-node
+    working_directory: ~/influxdata/ui
+    parallelism: 4
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - 'yarn-cached-packages-{{ checksum "yarn.lock" }}'
+          name: 'Restore Yarn Package Cache'
+      - run:
+          command: |
+            set +e
+            npx yarn install
+            npx yarn prettier
+          name: 'Install Dependencies'
+      - run: yarn generate
+      - run:
+          name: parallel jest tests
+          command: |
+            set +e
+            shopt -s globstar
+            TESTFILES=$(circleci tests glob "src/**/*.test.ts*" | circleci tests split --split-by=timings)
+            npx yarn test:circleci $TESTFILES
+      - store_test_results:
+          path: coverage
+      - store_artifacts:
+          path: coverage
+          destination: raw-test-output
+      - save_cache:
+          key: 'yarn-cached-packages-{{ checksum "yarn.lock" }}'
+          name: 'Save Yarn Package Cache'
+          paths:
+            - ~/.cache/yarn
+  unit-cloud:
+    docker:
+      - image: cimg/go:1.19-node
+    working_directory: ~/influxdata/ui
+    parallelism: 4
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - 'yarn-cached-packages-{{ checksum "yarn.lock" }}'
+          name: 'Restore Yarn Package Cache'
+      - run:
+          command: |
+            set +e
+            npx yarn install
+            npx yarn prettier
+          name: 'Install Dependencies'
+      - run: CLOUD_URL="/auth" yarn generate
+      - run:
+          name: parallel jest tests
+          command: |
+            set +e
+            shopt -s globstar
+            TESTFILES=$(circleci tests glob "src/**/*.test.ts*" | circleci tests split --split-by=timings)
+            npx yarn test:circleci $TESTFILES
+      - store_test_results:
+          path: coverage
+      - store_artifacts:
+          path: coverage
+          destination: raw-test-output
+      - save_cache:
+          key: 'yarn-cached-packages-{{ checksum "yarn.lock" }}'
+          name: 'Save Yarn Package Cache'
+          paths:
+            - ~/.cache/yarn
+  lint:
+    docker:
+      - image: cimg/go:1.19-node
+    working_directory: ~/influxdata/ui
+    parallelism: 4
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - 'yarn-cached-packages-{{ checksum "yarn.lock" }}'
+          name: 'Restore Yarn Package Cache'
+      - run:
+          command: |
+            set +e
+            yarn install
+          name: 'Install Dependencies'
+      - run: yarn generate
+      - run:
+          name: parallel tsc
+          command: |
+            yarn tsc
+      - run:
+          name: parallel eslint
+          command: |
+            set +e
+            shopt -s globstar
+            TESTFILES=$(circleci tests glob "src/**/*.ts*" "cypress/**/*.ts*" | circleci tests split --split-by=filesize)
+            yarn eslint:circleci $TESTFILES
+      - save_cache:
+          key: 'yarn-cached-packages-{{ checksum "yarn.lock" }}'
+          name: 'Save Yarn Package Cache'
+          paths:
+            - ~/.cache/yarn
+
+  lint-cloud:
+    docker:
+      - image: cimg/go:1.19-node
+    working_directory: ~/influxdata/ui
+    parallelism: 4
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - 'yarn-cached-packages-{{ checksum "yarn.lock" }}'
+          name: 'Restore Yarn Package Cache'
+      - run:
+          command: |
+            set +e
+            yarn install
+          name: 'Install Dependencies'
+      - run: CLOUD_URL="/auth" yarn generate
+      - run:
+          name: parallel tsc
+          command: |
+            yarn tsc
+      - run:
+          name: parallel eslint
+          command: |
+            set +e
+            shopt -s globstar
+            TESTFILES=$(circleci tests glob "src/**/*.ts*" "cypress/**/*.ts*" | circleci tests split --split-by=filesize)
+            yarn eslint:circleci $TESTFILES
+      - save_cache:
+          key: 'yarn-cached-packages-{{ checksum "yarn.lock" }}'
+          name: 'Save Yarn Package Cache'
+          paths:
+            - ~/.cache/yarn
+
+  monitor-ci-tests:
+    docker:
+      - image: quay.io/influxdb/ui-pipeline:latest
+    steps:
+      - run:
+          name: Run monitor-ci tests
+          command: API_KEY=${MONITOR_CI_API_KEY} PULL_REQUEST=${CIRCLE_PULL_REQUEST} MONITOR_CI_BRANCH="master" UI_BRANCH=${CIRCLE_BRANCH} UI_SHA=${CIRCLE_SHA1} SHA=${CIRCLE_SHA1} RUN_WORKFLOW="build" /run-monitor-ci-tests.bash
+      - store_artifacts:
+          path: monitor-ci/test-artifacts/results/build-oss-image
+          destination: test_artifacts/results/build-oss-image
+      - store_artifacts:
+          path: monitor-ci/test-artifacts/results/oss-e2e
+          destination: test_artifacts/results/oss-e2e
+      - store_artifacts:
+          path: monitor-ci/test-artifacts/results/build-image
+          destination: test_artifacts/results/build-image
+      - store_artifacts:
+          path: monitor-ci/test-artifacts/results/cloud-e2e
+          destination: test_artifacts/results/cloud-e2e
+      - store_artifacts:
+          path: monitor-ci/test-artifacts/results/cloud-lighthouse
+          destination: test_artifacts/results/cloud-lighthouse
+      - store_artifacts:
+          path: monitor-ci/test-artifacts/results/smoke
+          destination: test_artifacts/results/smoke
+      - store_artifacts:
+          path: monitor-ci/test-artifacts/results/build-prod-image
+          destination: test_artifacts/results/build-prod-image
+      - store_artifacts:
+          path: monitor-ci/test-artifacts/results/deploy
+          destination: test_artifacts/results/deploy
+      - store_artifacts:
+          path: monitor-ci/test-artifacts/results/remocal
+          destination: test_artifacts/results/remocal
+workflows:
+  version: 2
+  build:
+    jobs:
+      - unit
+      - lint
+      - unit-cloud
+      - lint-cloud
+      - monitor-ci-tests

@@ -1,0 +1,35 @@
+.status-search-bar {
+  position: relative;
+  width: 100%;
+}
+
+.status-search-bar--suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: $cf-grey-15;
+  z-index: 100;
+}
+
+.status-search-bar--clear {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  font-size: 10px;
+  color: $cf-grey-65;
+  border-radius: 2px;
+  background: $cf-grey-15;
+  cursor: pointer;
+
+  &:hover {
+    background: $cf-grey-25;
+  }
+}

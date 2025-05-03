@@ -1,0 +1,187 @@
+@import '@influxdata/clockface/dist/variables.scss';
+
+$panel-resizer--header: 47px;
+$panel-resizer--drag-handle: 30px;
+
+.panel-resizer {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  width: 100%;
+  border: $cf-border solid $cf-grey-5;
+  background-color: $cf-grey-5;
+  border-radius: $cf-radius 0 0 $cf-radius;
+  position: relative;
+  height: 100%;
+}
+
+.panel-resizer--error-state {
+  .panel-resizer--header {
+    color: $c-dreamsicle;
+  }
+}
+
+.panel-resizer--header {
+  color: $cf-grey-85;
+  width: $panel-resizer--header;
+  flex: 0 0 $panel-resizer--header;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding: $cf-space-2xs 0;
+}
+
+.panel-resizer--header__multiple-controls {
+  justify-content: space-between;
+}
+
+.panel-resizer--vis-toggle {
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  font-size: 1.5em;
+  transition: color 0.25s ease;
+  width: $panel-resizer--drag-handle;
+  height: $panel-resizer--drag-handle;
+  position: relative;
+
+  &:before {
+    display: inline-block;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+}
+
+.panel-resizer--header__visible .panel-resizer--vis-toggle,
+.panel-resizer--header__hidden .panel-resizer--vis-toggle {
+  &:hover {
+    cursor: pointer;
+  }
+}
+
+.panel-resizer--header__visible .panel-resizer--vis-toggle {
+  color: $c-pool;
+
+  &:hover {
+    color: $c-laser;
+  }
+}
+
+.panel-resizer--header__hidden .panel-resizer--vis-toggle {
+  color: $cf-grey-45;
+
+  &:hover {
+    color: $cf-grey-75;
+  }
+}
+
+.panel-resizer--body,
+.panel-resizer--empty,
+.panel-threshold--message,
+.panel-resizer--error {
+  position: relative;
+  flex: 1 0 0;
+}
+
+.panel-resizer--body {
+  display: flex;
+  align-items: center;
+}
+
+.panel-resizer--body__visible {
+  display: block;
+}
+
+.panel-resizer--error,
+.panel-resizer--empty {
+  color: $cf-grey-85;
+  user-select: text;
+  padding: $cf-space-2xs 0;
+  font-weight: $cf-font-weight--medium;
+  height: 30px;
+}
+
+.panel-threshold--message {
+  color: '#EFA5A9';
+  user-select: text;
+  padding: $cf-space-2xs 0;
+  font-weight: $cf-font-weight--bold;
+  text-align: center;
+  height: 30px;
+}
+
+.panel-resizer--error {
+  color: $c-dreamsicle;
+  height: auto;
+  white-space: pre;
+}
+
+.panel-resizer--error-button {
+  margin-left: $cf-space-2xs;
+}
+
+.panel-resizer--drag-handle {
+  width: $panel-resizer--drag-handle;
+  height: $panel-resizer--drag-handle;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+
+  &:hover {
+    cursor: ns-resize;
+  }
+
+  .panel-resizer--header__hidden & {
+    display: none;
+  }
+}
+
+// Hacky way to ensure the cursor is consistent during drag no matter
+// where the cursor is
+body.panel-resizer-dragging,
+body.panel-resizer-dragging:hover {
+  cursor: ns-resize !important;
+  user-select: none !important;
+}
+
+.panel-resizer--drag-icon {
+  font-size: 2em;
+  color: $c-honeydew;
+  transition: background-color 0.25s ease;
+  margin: $cf-border 0;
+}
+
+.panel-resizer--drag-handle:hover .panel-resizer--drag-icon {
+  color: $c-honeydew;
+}
+
+.panel-resizer--drag-handle__dragging .panel-resizer--drag-icon {
+  color: $c-rainforest;
+}
+
+/*
+  Loading Styles
+  ------------------------------------------------------------------------------
+*/
+
+.panel-resizer--loading-mask {
+  display: none;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background-color: rgba($cf-grey-5, 0.75);
+  z-index: 2;
+  align-items: center;
+  justify-content: center;
+  align-content: center;
+}
+
+.panel-resizer__loading .panel-resizer--loading-mask {
+  display: flex;
+}

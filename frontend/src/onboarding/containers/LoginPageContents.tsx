@@ -1,0 +1,295 @@
+// Libraries
+import React, {PureComponent, ChangeEvent, FormEvent} from 'react'
+import {connect, ConnectedProps} from 'react-redux'
+import {
+  AlignItems,
+  ComponentSize,
+  ComponentStatus,
+  FlexBox,
+  FlexDirection,
+  Grid,
+  Heading,
+  HeadingElement,
+  JustifyContent,
+  Method,
+  Panel,
+} from '@influxdata/clockface'
+import auth0js, {WebAuth} from 'auth0-js'
+
+// Components
+import {LoginForm} from 'src/onboarding/components/LoginForm'
+import {SocialButton} from 'src/shared/components/SocialButton'
+import {GoogleLogo} from 'src/shared/graphics/GoogleLogo'
+import {MicrosoftLogo} from 'src/shared/graphics/MicrosoftLogo'
+
+// Types
+import {Auth0Connection, FormFieldValidation} from 'src/types'
+
+// APIs & Actions
+import {notify} from 'src/shared/actions/notifications'
+import {passwordResetSuccessfully} from 'src/shared/copy/notifications'
+import {getAuth0Config, getConnection} from 'src/authorizations/apis'
+import {getFromLocalStorage} from 'src/localStorage'
+
+const TOKEN_EXP = 10 * 60 * 1000 // 10 minutes
+
+interface ErrorObject {
+  emailError?: string
+  passwordError?: string
+}
+
+interface State {
+  buttonStatus: ComponentStatus
+  email: string
+  emailError: string
+  password: string
+  passwordError: string
+}
+
+type ReduxProps = ConnectedProps<typeof connector>
+type Props = ReduxProps
+
+class LoginPageContents extends PureComponent<Props> {
+  private auth0: typeof WebAuth
+  private interval: NodeJS.Timeout
+
+  state: State = {
+    buttonStatus: ComponentStatus.Default,
+    email: '',
+    emailError: '',
+    password: '',
+    passwordError: '',
+  }
+
+  private getAuth0Config = async (
+    redirectTo: string
+  ): Promise<void | Error> => {
+    try {
+      const config = await getAuth0Config(redirectTo)
+      this.auth0 = new auth0js.WebAuth({
+        domain: config.domain,
+        clientID: config.clientID,
+        redirectUri: config.redirectURL,
+        responseType: 'code',
+        state: config.state,
+      })
+    } catch (error) {
+      console.error(error)
+      throw error
+    }
+  }
+
+  public componentDidMount() {
+    const redirectTo = getFromLocalStorage('redirectTo') || '/'
+    this.getAuth0Config(redirectTo)
+    // set an interval to get a new state session since the old one is only valid for ten minutes
+    this.interval = setInterval(() => {
+      this.getAuth0Config(redirectTo)
+    }, TOKEN_EXP)
+  }
+
+  public componentWillUnmount() {
+    // reset the auth0 client config
+    this.auth0 = {}
+    // reset the setInterval when unmounting
+    clearInterval(this.interval)
+  }
+
+  render() {
+    const {buttonStatus, email, emailError, password, passwordError} =
+      this.state
+
+    return (
+      <form
+        action="/signup"
+        method={Method.Post}
+        onSubmit={this.handleSubmit}
+        className="sign-up--form"
+      >
+        <Panel className="sign-up--form-panel">
+          <Panel.Header
+            size={ComponentSize.Large}
+            justifyContent={JustifyContent.Center}
+          >
+            <Heading element={HeadingElement.P} className="heading--margins">
+              Continue with
+            </Heading>
+          </Panel.Header>
+          <Panel.Body size={ComponentSize.Large}>
+            <Grid>
+              <Grid.Row className="sign-up--social-button-group">
+                <FlexBox
+                  stretchToFitWidth={true}
+                  direction={FlexDirection.Column}
+                  justifyContent={JustifyContent.Center}
+                  alignItems={AlignItems.Center}
+                  margin={ComponentSize.Large}
+                >
+                  <SocialButton
+                    handleClick={() => {
+                      this.handleSocialClick(Auth0Connection.Google)
+                    }}
+                    className="sign-up--google"
+                    buttonText="Google"
+                  >
+                    <GoogleLogo className="signup-icon" />
+                  </SocialButton>
+                  <SocialButton
+                    className="sign-up--microsoft"
+                    handleClick={() => {
+                      this.handleSocialClick(Auth0Connection.Microsoft)
+                    }}
+                    buttonText="Microsoft"
+                  >
+                    <MicrosoftLogo className="signup-icon" />
+                  </SocialButton>
+                </FlexBox>
+              </Grid.Row>
+            </Grid>
+            <Heading
+              element={HeadingElement.P}
+              className="sign-up--form-separator"
+            >
+              OR
+            </Heading>
+            <LoginForm
+              buttonStatus={buttonStatus}
+              email={email}
+              emailValidation={this.formFieldTypeFactory(emailError)}
+              password={password}
+              passwordValidation={this.formFieldTypeFactory(passwordError)}
+              handleInputChange={this.handleInputChange}
+              handleForgotPasswordClick={this.handleForgotPasswordClick}
+            />
+          </Panel.Body>
+        </Panel>
+      </form>
+    )
+  }
+
+  private get validateFieldValues(): {
+    isValid: boolean
+    errors: ErrorObject
+  } {
+    const {email, password} = this.state
+
+    const emailError = email === '' ? 'Email is required' : ''
+    const passwordError = password === '' ? 'Password is required' : ''
+
+    const errors: ErrorObject = {
+      emailError,
+      passwordError,
+    }
+
+    const isValid = Object.values(errors).every(error => error === '')
+
+    return {isValid, errors}
+  }
+
+  private formFieldTypeFactory = (
+    errorMessage: string
+  ): FormFieldValidation => ({
+    errorMessage,
+    hasError: errorMessage !== '',
+  })
+
+  private handleSubmit = async (event: FormEvent) => {
+    event.preventDefault()
+    const {email, password} = this.state
+
+    if (email) {
+      try {
+        const connection = await getConnection(email)
+        if (!!connection) {
+          return this.auth0.authorize({connection})
+        }
+      } catch (e) {
+        console.error(e)
+      }
+    }
+
+    const {isValid, errors} = this.validateFieldValues
+
+    if (!isValid) {
+      this.setState(errors)
+      return
+    }
+
+    this.setState({buttonStatus: ComponentStatus.Loading})
+
+    this.auth0.login(
+      {
+        realm: Auth0Connection.Authentication,
+        email,
+        password,
+      },
+      error => {
+        if (error) {
+          this.setState({buttonStatus: ComponentStatus.Default})
+          return this.displayErrorMessage(errors, error)
+        }
+      }
+    )
+    return
+  }
+
+  private displayErrorMessage = (errors, auth0Err) => {
+    // eslint-disable-next-line
+    if (/error in email/.test(auth0Err.code)) {
+      this.setState({
+        ...errors,
+        emailError: 'Please enter a valid email address',
+      })
+    } else if (auth0Err.code === 'access_denied') {
+      const emailError = `The email and password combination you submitted don't match. Please try again`
+      this.setState({...errors, emailError})
+    } else {
+      const emailError = `We have been notified of an issue while accessing your account. If this issue persists, please contact support@influxdata.com`
+      this.setState({...errors, emailError})
+    }
+  }
+
+  private handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+    this.setState({[event.target.name]: event.target.value})
+  }
+
+  private handleSocialClick = (connection: Auth0Connection) => {
+    this.auth0.authorize({
+      connection,
+    })
+  }
+
+  private handleForgotPasswordClick = event => {
+    event.preventDefault()
+    const {email} = this.state
+    const {onNotify} = this.props
+    if (!email) {
+      this.setState({emailError: 'Please enter a valid email address'})
+      return
+    }
+    this.auth0.changePassword(
+      {
+        email,
+        connection: Auth0Connection.Authentication,
+      },
+      (error, successMessage) => {
+        if (error) {
+          this.setState({emailError: error.message})
+          return
+        }
+        // notify user that change password email was sent successfully
+        // By default auth0 will send a success message even if the operation fails:
+        // https://community.auth0.com/t/auth0-changepassword-always-returns-ok-even-when-user-is-not-found/11081/8
+        onNotify(passwordResetSuccessfully(successMessage))
+      }
+    )
+  }
+}
+
+const mdtp = {
+  onNotify: notify,
+}
+
+const connector = connect(null, mdtp)
+
+export default connector(LoginPageContents)

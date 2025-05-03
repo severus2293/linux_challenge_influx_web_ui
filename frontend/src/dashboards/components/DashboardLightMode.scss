@@ -1,0 +1,118 @@
+/*
+  Light Mode for Dashboards
+  ------------------------------------------------------------------------------
+*/
+
+.clockface--app-wrapper.dashboard-light-mode {
+  background-color: $cf-grey-95;
+  color: $cf-grey-45;
+
+  .cf-page-contents > .cf-dapper-scrollbars--track-y {
+    background-color: $cf-grey-85 !important;
+  }
+
+  .cf-page--sub-title {
+    color: $cf-grey-75;
+  }
+
+  .cell {
+    background-color: $cf-white;
+  }
+
+  .cell--dot-grid,
+  .cell--dot-grid:before,
+  .cell--dot-grid:after {
+    background-color: $cf-grey-75;
+  }
+
+  .cell:hover .cell--dot-grid,
+  .cell:hover .cell--dot-grid:before,
+  .cell:hover .cell--dot-grid:after {
+    background-color: $cf-grey-45;
+  }
+
+  .cell:hover .cell--draggable:hover .cell--dot-grid,
+  .cell:hover .cell--draggable:hover .cell--dot-grid:before,
+  .cell:hover .cell--draggable:hover .cell--dot-grid:after {
+    background-color: $c-pool;
+  }
+
+  .cell--context {
+    color: $cf-grey-75;
+  }
+  .cell:hover .cell--context {
+    color: $cf-grey-45;
+  }
+  .cell:hover .cell--context:hover,
+  .cell .cell--context.cell--context__active,
+  .cell:hover .cell--context.cell--context__active {
+    color: $c-pool;
+  }
+
+  .cell--note-indicator {
+    color: $cf-grey-75;
+
+    &.cell--note-indicator__active,
+    &:hover,
+    .cell:hover &:hover {
+      color: $c-pool;
+    }
+  }
+
+  .markdown-format {
+    color: $cf-grey-35;
+
+    strong {
+      color: $cf-grey-25;
+    }
+
+    code {
+      background-color: $cf-grey-95;
+      color: $c-star;
+    }
+
+    pre {
+      background-color: $cf-grey-95;
+    }
+  }
+
+  .markdown-cell .cf-dapper-scrollbars--track-y {
+    background-color: $cf-grey-95 !important;
+  }
+
+  .cell--view-empty {
+    color: $cf-grey-65;
+  }
+  .variables-control-bar--empty,
+  .variables-control-bar--full {
+    background-color: $cf-white;
+  }
+}
+
+/*
+  Light Mode Cells
+  ------------------------------------------------------------------------------
+*/
+
+.clockface--app-wrapper.dashboard-light-mode {
+  .react-resizable-handle {
+    border-right-color: $cf-grey-75;
+    border-bottom-color: $cf-grey-75;
+
+    &:before,
+    &:after {
+      background-color: $cf-white;
+    }
+
+    &:hover {
+      border-right-color: $c-comet;
+      border-bottom-color: $c-comet;
+    }
+  }
+  .react-grid-item.resizing .react-resizable-handle,
+  .react-grid-item.react-draggable-dragging .react-resizable-handle {
+    opacity: 1;
+    border-right-color: $c-comet;
+    border-bottom-color: $c-comet;
+  }
+}

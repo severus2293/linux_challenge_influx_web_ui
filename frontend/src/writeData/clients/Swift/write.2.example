@@ -1,0 +1,5 @@
+let recordTuple: InfluxDBClient.Point.Tuple
+        = (measurement: "demo", tags: ["type": "tuple"], fields: ["value": .int(3)], time: nil)
+
+try await client.makeWriteAPI().write(bucket: bucket, org: org, tuple: recordTuple)
+

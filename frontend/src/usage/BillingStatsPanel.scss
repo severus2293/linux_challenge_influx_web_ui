@@ -1,0 +1,33 @@
+.usage--billing-header.cf-panel--header {
+  justify-content: flex-start;
+}
+
+.usage--panel {
+  .panel--body {
+    position: relative;
+  }
+}
+
+.billing-stats--panel {
+  margin-bottom: $cf-space-s !important;
+
+  .cf-panel {
+    margin-bottom: $cf-space-3xs;
+  }
+}
+
+@media screen and (min-width: $cf-grid--breakpoint-md) {
+  .billing-stats--panel {
+    .cf-panel {
+      margin-bottom: 0;
+    }
+  }
+}
+
+.usage-tooltip {
+  margin-left: $cf-space-2xs;
+}
+
+.billing-stats--graph-body {
+  min-height: 120px;
+}

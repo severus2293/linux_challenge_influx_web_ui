@@ -1,0 +1,32 @@
+@import '@influxdata/clockface/dist/variables.scss';
+
+.plugin-create-configuration-name-row,
+.plugin-create-configuration-description-row {
+  display: flex;
+  align-items: flex-end;
+}
+
+.plugin-create-configuration-copy-to-clipboard--button,
+.plugin-create-configuration-download--button {
+  margin-bottom: $cf-space-2xs;
+}
+
+.plugin-create-configuration-customize-editor,
+.plugin-edit-configuration--editor {
+  margin-top: $cf-space-2xs;
+  height: 55vh;
+  width: 100%;
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+}
+
+.plugin-create-configuration--agent-notification {
+  font-weight: 900;
+  font-size: $cf-text-base-2;
+  color: #ff4d96;
+}
+
+.plugin-create-configuration--popover-contents {
+  font-size: $cf-text-tiny;
+}

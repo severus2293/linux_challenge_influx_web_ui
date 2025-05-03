@@ -1,0 +1,16 @@
+import Foundation
+import InfluxDBSwift
+
+@main
+class Example {
+    static func main() async throws {
+
+        let url = "<%= server %>"
+        let token = ProcessInfo.processInfo.environment["INFLUX_TOKEN"]!
+        let bucket = "<%= bucket %>"
+        let org = "<%= org %>"
+
+        let client = InfluxDBClient(url: url, token: token)
+
+    }
+}

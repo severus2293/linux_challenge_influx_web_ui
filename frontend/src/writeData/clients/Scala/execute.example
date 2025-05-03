@@ -1,0 +1,12 @@
+val query = """<%= query %>"""
+
+// Result is returned as a stream
+val results = client.getQueryScalaApi().query(query)
+
+val sink = results
+  // print results
+  .runWith(Sink.foreach[FluxRecord](it => println(s"$it")
+  ))
+
+// wait to finish
+Await.result(sink, Duration.Inf)

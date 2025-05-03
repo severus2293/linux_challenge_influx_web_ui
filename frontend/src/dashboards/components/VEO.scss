@@ -1,0 +1,37 @@
+/*
+  View Editor Overlay Styles
+  ------------------------------------------------------------------------------
+*/
+
+.veo {
+  width: calc(100vw - #{$cf-space-2xl});
+  height: calc(100vh - #{$cf-space-l});
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  border-radius: 0 0 $cf-radius $cf-radius;
+  background-color: $cf-page--background;
+
+  .cf-page-header--fluid,
+  .veo-contents {
+    padding-left: $cf-space-l;
+    padding-right: $cf-space-l;
+  }
+}
+
+.veo-contents {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  flex: 1 0 0;
+  padding-left: $cf-space-l;
+  padding-right: $cf-space-l;
+  padding-bottom: $cf-space-s;
+}
+
+.veo-overlay {
+  .overlay--transition {
+    height: 100%;
+  }
+}

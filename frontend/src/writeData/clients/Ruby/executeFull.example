@@ -1,0 +1,19 @@
+require 'influxdb-client'
+
+# You can generate a Token from the "Tokens Tab" in the UI
+token = '<%= token %>'
+org = '<%= org %>'
+
+InfluxDB2::Client.use('<%= server %>',
+                      token,
+                      precision: InfluxDB2::WritePrecision::NANOSECOND) do |client|
+
+    query = %{<%= query %>}
+
+    tables = client.create_query_api.query(query: query, org: org)
+    tables.each do |_, table|
+      table.records.each do |record|
+        puts "#{record.time} #{record.measurement}: #{record.field}=#{record.value}"
+      end
+    end
+end

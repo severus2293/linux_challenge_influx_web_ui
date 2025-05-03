@@ -1,0 +1,8 @@
+let recordPoint = InfluxDBClient
+        .Point("demo")
+        .addTag(key: "type", value: "point-timestamp")
+        .addField(key: "value", value: .int(2))
+        .time(time: .date(Date()))
+
+try await client.makeWriteAPI().write(bucket: bucket, org: org, points: [recordPoint])
+

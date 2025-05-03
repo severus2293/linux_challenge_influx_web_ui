@@ -1,0 +1,170 @@
+@import '@influxdata/clockface/dist/variables.scss';
+@import '~src/flows/FlowVariables.scss';
+
+$cf-radius-lg: $cf-radius + 4px;
+
+.small-flow-divider {
+  position: relative;
+  margin-bottom: 4px;
+  text-align: right;
+
+  .insert-wrap {
+    padding: 8px 0;
+    display: inline-block;
+    cursor: pointer;
+
+    &:active,
+    &:hover {
+      .cf-button.flow-divider--button {
+        background: linear-gradient(45deg, #5c10a0 0%, #8e1fc3 100%);
+        color: #fff;
+      }
+      span {
+        color: #fff;
+      }
+    }
+  }
+
+  .cf-button.flow-divider--button {
+    position: static;
+    transform: none;
+    margin: -4px 8px 0;
+    background: inherit;
+
+    &:hover {
+      &:after {
+        display: none;
+      }
+    }
+  }
+
+  span {
+    font-size: 12px;
+    color: #68687b;
+  }
+}
+
+.flow-divider {
+  position: relative;
+  width: 100%;
+  height: $flow-panel--node-gap + $cf-space-2xs + 12;
+  opacity: 1;
+  left: 2px;
+
+  // Vertical lines
+  &:before,
+  &:after {
+    content: '';
+    position: absolute;
+    left: $flow-panel--node-gap * 0.5;
+    width: $cf-border;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  &:before {
+    top: $flow-panel--insert-gap;
+    height: $flow-panel--insert-connector;
+    transform: translate(-50%, -100%);
+    @include gradient-v($cf-grey-25, $c-amethyst);
+  }
+
+  &:after {
+    bottom: $flow-panel--insert-gap;
+    height: $flow-panel--insert-connector;
+    transform: translate(-50%, 100%);
+    @include gradient-v($c-amethyst, $cf-grey-25);
+  }
+
+  &:last-child {
+    margin-bottom: 25vh;
+  }
+}
+
+.flow-divider:last-child:after {
+  display: none;
+}
+
+.cf-button.flow-divider--button {
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: $flow-panel--node-gap * 0.5;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  background: linear-gradient(45deg, #5c10a0 0%, #8e1fc3 100%);
+  &:after {
+    border-radius: 50%;
+  }
+}
+
+.flow-divider--collapse {
+  position: absolute;
+  top: 50%;
+  left: $flow-panel--node-gap * 0.5 + 20;
+  transform: translate(0, -50%);
+  padding: 4px 16px;
+}
+.flow-divider--collapse-caution {
+  border-radius: 4px;
+  border: 2px solid $c-curacao;
+
+  .flow-divider--collapse-button:before {
+    position: absolute;
+    content: '';
+    background: $c-curacao;
+    top: -1px;
+    bottom: -1px;
+    right: -1px;
+    width: 50px;
+    z-index: -1;
+    border-radius: 0 4px 4px 0;
+  }
+}
+.flow-divider--collapse-notice {
+  width: 612px;
+  font-size: 14px;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 24px;
+
+  span {
+    display: inline-block;
+    font-weight: bold;
+    margin: 0 4px;
+  }
+}
+
+.flow-divider--collapse-button {
+  font-size: 22px;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.flow-panel:hover .flow-divider,
+.flow-panel:last-child .flow-divider,
+.flow-divider__popped {
+  opacity: 1;
+}
+
+.insert-cell-menu {
+  padding: $cf-space-2xs;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 14px;
+
+  &.always-on {
+    margin: 32px auto 60px;
+    border-radius: $cf-radius-lg;
+    background-color: $flow-panel--bg;
+  }
+}
+
+.insert-cell-menu--title {
+  text-align: center;
+  font-weight: $cf-font-weight--medium;
+  margin-top: 0;
+  margin-bottom: $cf-space-2xs !important;
+  user-select: none;
+}

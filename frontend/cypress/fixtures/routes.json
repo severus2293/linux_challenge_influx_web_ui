@@ -1,0 +1,14 @@
+{
+  "alerting": "/alerting",
+  "buckets": "/load-data/buckets",
+  "checks": "/checks",
+  "dashboards": "/dashboards",
+  "endpoints": "/endpoints",
+  "explorer": "/data-explorer",
+  "flows": "/flows",
+  "notebooks": "/notebooks",
+  "orgs": "/orgs",
+  "rules": "/rules",
+  "sources": "/load-data/sources",
+  "telegrafs": "/load-data/telegrafs"
+}

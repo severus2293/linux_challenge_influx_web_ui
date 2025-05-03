@@ -1,0 +1,29 @@
+import Foundation
+import InfluxDBSwift
+
+@main
+class Example {
+    static func main() async throws {
+
+        let url = "<%= server %>"
+        let token = "<%= token %>"
+        let org = "<%= org %>"
+
+        let client = InfluxDBClient(url: url, token: token)
+
+        let query = """
+                    <%= query %>
+                    """
+
+        let records = try await client.queryAPI.query(query: query, org: org)
+        try records.forEach {
+          let time = $0.values["_time"]!
+          let measurement = $0.values["_measurement"]!
+          let field = $0.values["_field"]!
+          let value = $0.values["_value"]!
+          print("\(time) \(measurement): \(field)=\(value)")
+        }
+
+        client.close()
+    }
+}

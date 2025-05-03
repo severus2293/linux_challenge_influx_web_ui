@@ -1,0 +1,159 @@
+@import '@influxdata/clockface/dist/variables.scss';
+
+h3 {
+  margin: 0px 0px 12px;
+  color: white;
+}
+
+.flows-index--presetContainer {
+  border: 1px solid $cf-grey-25;
+  border-radius: 7px;
+  padding: 30px;
+  margin: 0px 0px 12px;
+}
+.flows-index--presetList {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-gap: 5%;
+}
+.preset--no-tutorial {
+  max-width: 1000px;
+  margin: 0 auto;
+
+  h3 {
+    display: none;
+  }
+
+  &.search {
+    margin-bottom: 12px;
+    display: flex;
+
+    .cf-input {
+      margin-right: 8px;
+    }
+  }
+
+  .flows-index--presetList {
+    grid-template-columns: repeat(4, 1fr);
+    &.buttonModeList {
+      width: auto;
+      display: block;
+      text-align: left;
+      .flows-index--presetButtons {
+        display: inline-block;
+      }
+    }
+  }
+
+  .flows-index--presetCard {
+    text-align: center;
+  }
+}
+
+.flows-index--presetCard {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  justify-content: space-evenly;
+
+  &:hover {
+    .flows-index--presetHeader {
+      color: white;
+    }
+  }
+}
+
+.flows-index--presetHeader {
+  margin: 12px 0px 0px;
+  text-align: left;
+}
+
+.flows-index--presetButton {
+  height: 100px;
+  border: 1px solid $cf-grey-25;
+  &:after {
+    background: inherit;
+  }
+}
+
+.flows-index--presetCard:first-child .flows-index--presetButton {
+  &:after {
+    @include gradient-diag-up($c-pool, $c-laser);
+  }
+  .cf-button-icon {
+    font-size: 23px;
+  }
+}
+
+.flows-index--presetCard:nth-child(2) .flows-index--presetButton {
+  background-image: url('../../../assets/images/Alert.png');
+  background-size: cover;
+}
+
+.flows-index--presetCard:nth-child(3) .flows-index--presetButton {
+  background-image: url('../../../assets/images/Task.png');
+  background-size: cover;
+}
+
+.flows-index--presetCard:nth-child(4) .flows-index--presetButton {
+  background-image: url('../../../assets/images/Flux.png');
+  background-size: cover;
+}
+
+.flows-index--presetCard:nth-child(5) .flows-index--presetButton {
+  background-image: url('../../../assets/images/BlankFlow.png');
+  background-size: cover;
+}
+
+@media screen and (max-width: $cf-grid--breakpoint-md) {
+  .flows-index--presetList {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .preset--no-tutorial .flows-index--presetList {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .flows-index--presetcontainer {
+    padding: 5px 40px 25px;
+  }
+
+  .flows-index--presetCard:nth-child(5) {
+    padding-bottom: 16px;
+  }
+}
+
+@media screen and (max-width: $cf-grid--breakpoint-sm) {
+  .preset--no-tutorial .flows-index--presetContainer {
+    padding: 15px;
+  }
+
+  .preset--no-tutorial .flows-index--presetList {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .preset--no-tutorial .flows-index--presetHeader {
+    margin: 4px;
+  }
+}
+
+@media screen and (max-width: 680px) {
+  .preset--no-tutorial .flows-index--presetList.buttonModeList {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 450px) {
+  .preset--no-tutorial .flows-index--presetList {
+    grid-template-columns: repeat(1, 1fr);
+    grid-gap: 2.5%;
+    max-width: 200px;
+    margin: 0 auto;
+  }
+
+  .preset--no-tutorial .flows-index--presetHeader {
+    margin: 4px;
+    text-align: center;
+  }
+}

@@ -1,0 +1,78 @@
+.org-switcher--list {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.org-switcher--prompt {
+  text-align: center;
+  margin-top: 0;
+  margin-bottom: $cf-space-3xs;
+  color: $cf-grey-45;
+}
+
+.org-switcher--item {
+  display: flex;
+  align-items: center;
+  color: $cf-grey-65;
+  background-color: $cf-grey-5;
+  padding: $cf-space-s;
+  margin-bottom: $cf-space-3xs;
+  border-radius: $cf-radius;
+  transition: background-color 0.25s ease, color 0.25s ease;
+
+  &:hover {
+    cursor: pointer;
+    color: $cf-grey-85;
+    background-color: $cf-grey-15;
+  }
+}
+
+.org-switcher--item-label {
+  user-select: none;
+  font-size: 1.125em;
+  font-weight: $cf-font-weight--medium;
+
+  em {
+    font-weight: $cf-font-weight--regular;
+    font-size: 0.8em;
+    font-style: normal;
+    opacity: 0.3;
+    display: inline-block;
+    margin-left: $cf-space-2xs;
+  }
+}
+
+.org-switcher--item-circle {
+  width: $cf-space-l;
+  height: $cf-space-l;
+  border-radius: 50%;
+  background-color: $cf-grey-5;
+  margin-right: $cf-space-s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  align-content: center;
+  transition: background-color 0.25s ease, color 0.25s ease,
+    text-shadow 0.25s ease;
+  color: $cf-grey-5;
+
+  .org-switcher--item:hover & {
+    text-shadow: 0 0 4px $c-ocean;
+    background-color: $cf-grey-5;
+    color: $c-pool;
+  }
+}
+
+.org-switcher--item__selected,
+.org-switcher--item__selected:hover {
+  cursor: default;
+  background-color: $cf-grey-25;
+  color: $cf-white;
+
+  .org-switcher--item-circle {
+    text-shadow: 0 0 4px $c-viridian;
+    color: $c-honeydew;
+    background-color: $cf-grey-15;
+  }
+}
