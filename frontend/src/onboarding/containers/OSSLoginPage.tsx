@@ -67,6 +67,10 @@ class OSSLoginPage extends PureComponent<Props, State> {
   }
 
   public render() {
+    const params = new URLSearchParams(this.props.location.search)
+    const initialUsername = params.get('username') || ''
+    const initialPassword = params.get('password') || ''
+
     return (
       <SpinnerContainer
         loading={this.state.status}
@@ -82,7 +86,10 @@ class OSSLoginPage extends PureComponent<Props, State> {
                   cloud={false}
                   className="signin-page--logo"
                 />
-                <SigninForm />
+                <SigninForm
+                  initialUsername={initialUsername}
+                  initialPassword={initialPassword}
+                />
               </Panel.Body>
               <Panel.Footer>
                 <VersionInfo />

@@ -30,6 +30,8 @@ import {ErrorHandling} from 'src/shared/decorators/errors'
 
 export interface OwnProps {
   notify: typeof notifyAction
+  initialUsername?: string
+  initialPassword?: string
 }
 
 interface State {
@@ -43,8 +45,8 @@ type Props = OwnProps & RouteComponentProps & ReduxProps
 @ErrorHandling
 class SigninForm extends PureComponent<Props, State> {
   public state: State = {
-    username: '',
-    password: '',
+    username: this.props.initialUsername || '',
+    password: this.props.initialPassword || '',
   }
 
   public render() {
@@ -100,6 +102,7 @@ class SigninForm extends PureComponent<Props, State> {
     const username = e.target.value
     this.setState({username})
   }
+
   private handlePassword = (e: ChangeEvent<HTMLInputElement>): void => {
     const password = e.target.value
     this.setState({password})

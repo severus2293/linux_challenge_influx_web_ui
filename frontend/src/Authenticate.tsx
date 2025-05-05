@@ -48,7 +48,8 @@ interface OwnProps {
 type ReduxProps = ConnectedProps<typeof connector>
 type Props = OwnProps & RouteComponentProps & ReduxProps
 
-const FETCH_WAIT = 60000
+// TODO: понять почему сессию выкидывает
+const FETCH_WAIT = 600000
 
 @ErrorHandling
 class AuthenticateUnconnected extends PureComponent<Props, State> {
@@ -63,7 +64,7 @@ class AuthenticateUnconnected extends PureComponent<Props, State> {
   private handleAuthenticationFailure = error => {
     this.setState({isAuthenticated: false})
     const {
-      location: {pathname},
+      location: {pathname, search},
     } = this.props
 
     clearInterval(this.intervalID)
@@ -93,11 +94,13 @@ class AuthenticateUnconnected extends PureComponent<Props, State> {
     let returnTo = ''
 
     if (pathname !== '/') {
-      returnTo = `?returnTo=${pathname}`
+      returnTo = `returnTo=${encodeURIComponent(pathname)}`
       this.props.notify(sessionTimedOut())
     }
 
-    this.props.history.replace(`/signin${returnTo}`)
+    const existingParams = search ? `${search.slice(1)}` : ''
+    returnTo = returnTo ? `${returnTo}&${existingParams}` : `${existingParams}`
+    this.props.history.replace(`/signin?${returnTo}`)
   }
 
   private fetchMe = async () => {
