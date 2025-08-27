@@ -5,11 +5,10 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
-	"time"
-
 	"github.com/influxdata/influxdb/v2"
 	"github.com/influxdata/influxdb/v2/kit/platform"
 	"github.com/influxdata/influxdb/v2/kit/platform/errors"
+	"time"
 )
 
 type TempDBService struct {
@@ -39,7 +38,11 @@ func generateRandomString(n int) (string, error) {
 	return base64.RawURLEncoding.EncodeToString(b)[:n], nil
 }
 
-func (s *TempDBService) CreateTempDB(ctx context.Context) (*TempDBResponse, error) {
+func (s *TempDBService) CreateTempDB(ctx context.Context, ttlMinutes int) (*TempDBResponse, error) {
+	if ttlMinutes <= 0 {
+		ttlMinutes = 10
+	}
+
 	// Генерация уникальных данных
 	orgName := fmt.Sprintf("temp_org_%d", time.Now().UnixNano())
 	userName := fmt.Sprintf("temp_user_%d", time.Now().UnixNano())
@@ -149,15 +152,15 @@ func (s *TempDBService) CreateTempDB(ctx context.Context) (*TempDBResponse, erro
 		}
 	}
 
-	// Запланировать удаление через 10 минут
-	expiresAt := time.Now().Add(10 * time.Minute)
-	go func() {
-		time.Sleep(10 * time.Minute)
-		s.AuthService.DeleteAuthorization(ctx, auth.ID)
-		s.UserResourceMappingService.DeleteUserResourceMapping(ctx, user.ID, org.ID)
-		s.UserService.DeleteUser(ctx, user.ID)
-		s.OrgService.DeleteOrganization(ctx, org.ID)
-	}()
+	// Запланировать удаление через ttlMinutes
+	expiresAt := time.Now().Add(time.Duration(ttlMinutes) * time.Minute)
+	go func(orgID, userID platform.ID, authID platform.ID) {
+		time.Sleep(time.Duration(ttlMinutes) * time.Minute)
+		s.AuthService.DeleteAuthorization(ctx, authID)
+		s.UserResourceMappingService.DeleteUserResourceMapping(ctx, userID, orgID)
+		s.UserService.DeleteUser(ctx, userID)
+		s.OrgService.DeleteOrganization(ctx, orgID)
+	}(org.ID, user.ID, auth.ID)
 
 	return &TempDBResponse{
 		OrgID:     org.ID,
@@ -167,4 +170,62 @@ func (s *TempDBService) CreateTempDB(ctx context.Context) (*TempDBResponse, erro
 		Token:     auth.Token,
 		ExpiresAt: expiresAt.Format(time.RFC3339),
 	}, nil
+}
+
+func (s *TempDBService) DeleteTempDB(ctx context.Context, orgName string) error {
+	// Найти организацию по имени
+	orgs, _, err := s.OrgService.FindOrganizations(ctx, influxdb.OrganizationFilter{Name: &orgName})
+	if err != nil || len(orgs) == 0 {
+		return &errors.Error{
+			Msg:  "organization not found",
+			Err:  err,
+			Code: errors.ENotFound,
+		}
+	}
+	org := orgs[0]
+
+	// Найти всех пользователей, привязанных к организации
+	mappings, _, err := s.UserResourceMappingService.FindUserResourceMappings(ctx, influxdb.UserResourceMappingFilter{
+		ResourceID:   org.ID,
+		ResourceType: influxdb.OrgsResourceType,
+	})
+	if err != nil {
+		return &errors.Error{
+			Msg:  "failed to find user mappings",
+			Err:  err,
+			Code: errors.EInternal,
+		}
+	}
+
+	for _, m := range mappings {
+
+		if m.UserType != influxdb.Member {
+			continue
+		}
+
+		userID := m.UserID
+
+		// найти все авторизации этого юзера
+		auths, _, _ := s.AuthService.FindAuthorizations(ctx, influxdb.AuthorizationFilter{UserID: &userID})
+		for _, a := range auths {
+			_ = s.AuthService.DeleteAuthorization(ctx, a.ID)
+		}
+
+		// удалить UserResourceMapping
+		_ = s.UserResourceMappingService.DeleteUserResourceMapping(ctx, userID, org.ID)
+
+		// удалить пользователя
+		_ = s.UserService.DeleteUser(ctx, userID)
+	}
+
+	// удалить организацию
+	if err := s.OrgService.DeleteOrganization(ctx, org.ID); err != nil {
+		return &errors.Error{
+			Msg:  "failed to delete organization",
+			Err:  err,
+			Code: errors.EInternal,
+		}
+	}
+
+	return nil
 }

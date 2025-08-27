@@ -1,11 +1,11 @@
 package noSQL_module
 
 import (
-	"net/http"
-
+	"encoding/json"
 	"github.com/influxdata/influxdb/v2"
 	"github.com/influxdata/influxdb/v2/kit/platform/errors"
-	"github.com/influxdata/influxdb/v2/kit/tracing"
+	"net/http"
+	"strconv"
 )
 
 type TempDBHandler struct {
@@ -27,25 +27,58 @@ func NewTempDBHandler(orgService influxdb.OrganizationService, userService influ
 }
 
 func (h *TempDBHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "GET" {
+	switch {
+	case r.Method == "GET" && r.URL.Path == "/create_temp_db":
+		h.handleCreate(w, r)
+	case r.Method == "POST" && r.URL.Path == "/delete_temp_db":
+		h.handleDelete(w, r)
+	default:
 		h.errorHandler.HandleHTTPError(r.Context(), &errors.Error{
-			Msg:  "method not allowed",
+			Msg:  "not found",
+			Code: errors.ENotFound,
+		}, w)
+	}
+}
+
+func (h *TempDBHandler) handleCreate(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	// читаем ttl из query
+	ttlStr := r.URL.Query().Get("ttl")
+	ttl := 10
+	if ttlStr != "" {
+		if v, err := strconv.Atoi(ttlStr); err == nil && v > 0 {
+			ttl = v
+		}
+	}
+
+	result, err := h.tempDBService.CreateTempDB(ctx, ttl)
+	if err != nil {
+		h.errorHandler.HandleHTTPError(ctx, err, w)
+		return
+	}
+	encodeResponse(ctx, w, http.StatusOK, result)
+}
+
+func (h *TempDBHandler) handleDelete(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	var body struct {
+		OrgName string `json:"org_name"`
+	}
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil || body.OrgName == "" {
+		h.errorHandler.HandleHTTPError(ctx, &errors.Error{
+			Msg:  "invalid request body",
 			Code: errors.EInvalid,
 		}, w)
 		return
 	}
 
-	ctx := r.Context()
-	span, ctx := tracing.StartSpanFromContext(ctx)
-	defer span.Finish()
-
-	result, err := h.tempDBService.CreateTempDB(ctx)
-	if err != nil {
+	if err := h.tempDBService.DeleteTempDB(ctx, body.OrgName); err != nil {
 		h.errorHandler.HandleHTTPError(ctx, err, w)
 		return
 	}
 
-	if err := encodeResponse(ctx, w, http.StatusOK, result); err != nil {
-		h.errorHandler.HandleHTTPError(ctx, err, w)
-	}
+	encodeResponse(ctx, w, http.StatusOK, map[string]string{
+		"message": "organization deleted",
+	})
 }

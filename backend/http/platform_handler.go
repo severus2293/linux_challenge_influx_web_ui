@@ -88,7 +88,7 @@ func (h *PlatformHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if r.URL.Path == "/create_temp_db" {
+	if r.URL.Path == "/create_temp_db" || r.URL.Path == "/delete_temp_db" {
 		h.TempDBHandler.ServeHTTP(w, r)
 		return
 	}
