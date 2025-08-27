@@ -70,21 +70,23 @@ RUN groupadd -r influxdb --gid=1000 && \
 
 # Устанавливаем gosu
 ENV GOSU_VER=1.16
-RUN case "$(dpkg --print-architecture)" in \
-      *amd64) arch=amd64 ;; \
-      *arm64) arch=arm64 ;; \
-      *) echo 'Unsupported architecture' && exit 1 ;; \
-    esac && \
-    export GNUPGHOME="$(mktemp -d)" && \
-    gpg --batch --keyserver keyserver.ubuntu.com --recv-keys \
-      # Tianon Gravi <tianon@tianon.xyz> (gosu) \
-      B42F6819007F00F88E364FD4036A9C25BF357DD4 && \
-    curl -fLo /usr/local/bin/gosu "https://github.com/tianon/gosu/releases/download/$GOSU_VER/gosu-${arch}" \
-         -fLo /usr/local/bin/gosu.asc "https://github.com/tianon/gosu/releases/download/$GOSU_VER/gosu-${arch}.asc" && \
-    gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu && \
-    rm -rf /usr/local/bin/gosu.asc "$GNUPGHOME" && \
-    chmod +x /usr/local/bin/gosu && \
-    gosu --version && \
+RUN set -eux; \
+    apt-get update && apt-get install -y --no-install-recommends dirmngr gnupg ca-certificates; \
+    arch="$(dpkg --print-architecture)"; \
+    case "$arch" in \
+      amd64) arch='amd64' ;; \
+      arm64) arch='arm64' ;; \
+      *) echo "Unsupported architecture: $arch" >&2; exit 1 ;; \
+    esac; \
+    export GNUPGHOME="$(mktemp -d)"; \
+    gpg --batch --keyserver hkps://keys.openpgp.org --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4 \
+    || gpg --batch --keyserver hkps://keyserver.ubuntu.com:443 --recv-keys B42F6819007F00F88E364FD4036A9C25BF357DD4; \
+    curl -fsSL "https://github.com/tianon/gosu/releases/download/$GOSU_VER/gosu-$arch" -o /usr/local/bin/gosu; \
+    curl -fsSL "https://github.com/tianon/gosu/releases/download/$GOSU_VER/gosu-$arch.asc" -o /usr/local/bin/gosu.asc; \
+    gpg --batch --verify /usr/local/bin/gosu.asc /usr/local/bin/gosu; \
+    rm -rf /usr/local/bin/gosu.asc "$GNUPGHOME"; \
+    chmod +x /usr/local/bin/gosu; \
+    gosu --version; \
     gosu nobody true
 
 # Копируем influxd из стадии backend-builder
@@ -95,24 +97,24 @@ COPY --from=frontend-builder /frontend/build /usr/local/share/influxdb/static
 
 # Устанавливаем influx CLI
 ENV INFLUX_CLI_VERSION=2.7.5
-RUN case "$(dpkg --print-architecture)" in \
-      *amd64) arch=amd64 ;; \
-      *arm64) arch=arm64 ;; \
-      *) echo 'Unsupported architecture' && exit 1 ;; \
-    esac && \
-    export GNUPGHOME="$(mktemp -d)" && \
-    gpg --batch --keyserver keyserver.ubuntu.com --recv-keys \
-      # InfluxData Package Signing Key <support@influxdata.com> \
-      9D539D90D3328DC7D6C8D3B9D8FF8E1F7DF8B07E && \
-    curl -fLO "https://dl.influxdata.com/influxdb/releases/influxdb2-client-${INFLUX_CLI_VERSION}-linux-${arch}.tar.gz" \
-         -fLO "https://dl.influxdata.com/influxdb/releases/influxdb2-client-${INFLUX_CLI_VERSION}-linux-${arch}.tar.gz.asc" && \
+RUN set -eux; \
+    apt-get update && apt-get install -y --no-install-recommends dirmngr gnupg ca-certificates; \
+    arch="$(dpkg --print-architecture)"; \
+    case "$arch" in \
+      amd64) arch='amd64' ;; \
+      arm64) arch='arm64' ;; \
+      *) echo "Unsupported architecture: $arch" >&2; exit 1 ;; \
+    esac; \
+    export GNUPGHOME="$(mktemp -d)"; \
+    gpg --batch --keyserver hkps://keys.openpgp.org --recv-keys 9D539D90D3328DC7D6C8D3B9D8FF8E1F7DF8B07E \
+    || gpg --batch --keyserver hkps://keyserver.ubuntu.com:443 --recv-keys 9D539D90D3328DC7D6C8D3B9D8FF8E1F7DF8B07E; \
+    curl -fLO "https://dl.influxdata.com/influxdb/releases/influxdb2-client-${INFLUX_CLI_VERSION}-linux-${arch}.tar.gz"; \
+    curl -fLO "https://dl.influxdata.com/influxdb/releases/influxdb2-client-${INFLUX_CLI_VERSION}-linux-${arch}.tar.gz.asc"; \
     gpg --batch --verify "influxdb2-client-${INFLUX_CLI_VERSION}-linux-${arch}.tar.gz.asc" \
-                         "influxdb2-client-${INFLUX_CLI_VERSION}-linux-${arch}.tar.gz" && \
-    tar xzf "influxdb2-client-${INFLUX_CLI_VERSION}-linux-${arch}.tar.gz" && \
-    cp influx /usr/local/bin/influx && \
-    rm -rf "influxdb2-client-${INFLUX_CLI_VERSION}-linux-${arch}" \
-           "influxdb2-client-${INFLUX_CLI_VERSION}-linux-${arch}.tar.gz" \
-           "influxdb2-client-${INFLUX_CLI_VERSION}-linux-${arch}.tar.gz.asc" "$GNUPGHOME" && \
+                         "influxdb2-client-${INFLUX_CLI_VERSION}-linux-${arch}.tar.gz"; \
+    tar xzf "influxdb2-client-${INFLUX_CLI_VERSION}-linux-${arch}.tar.gz"; \
+    cp influx /usr/local/bin/influx; \
+    rm -rf "influxdb2-client-${INFLUX_CLI_VERSION}-linux-${arch}"* "$GNUPGHOME"; \
     influx version
 
 # Создаем директории
