@@ -23,7 +23,7 @@
     "start:kind": "echo 'please start using `yarn start:dev:remocal`' && yarn start:dev:remocal",
     "start:docker": "yarn generate && yarn run start:dev",
     "build": "yarn install --silent && yarn build:ci",
-    "build:ci": "yarn generate && webpack --config webpack.prod.ts",
+    "build:ci": "yarn generate && TS_NODE_COMPILER_OPTIONS='{\"module\":\"CommonJS\"}' webpack --config webpack.prod.ts",
     "build:fast": "webpack --config webpack.fast.ts",
     "build:vendor": "webpack --config webpack.vendor.ts",
     "clean": "rm -rf ./build && rm -rf ./.cache && rm -rf node_modules && rm -rf cypress/screenshots && rm -rf cypress/videos && rm -f junit-results/* ",

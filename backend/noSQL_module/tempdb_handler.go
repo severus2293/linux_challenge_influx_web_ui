@@ -73,12 +73,14 @@ func (h *TempDBHandler) handleDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.tempDBService.DeleteTempDB(ctx, body.OrgName); err != nil {
-		h.errorHandler.HandleHTTPError(ctx, err, w)
-		return
-	}
+	timings, err := h.tempDBService.DeleteTempDB(ctx, body.OrgName)
+    if err != nil {
+        h.errorHandler.HandleHTTPError(ctx, err, w)
+        return
+    }
 
-	encodeResponse(ctx, w, http.StatusOK, map[string]string{
-		"message": "organization deleted",
-	})
+    encodeResponse(ctx, w, http.StatusOK, map[string]interface{}{
+        "message": "organization deleted",
+        "timings": timings,
+    })
 }
